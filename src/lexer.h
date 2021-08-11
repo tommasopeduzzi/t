@@ -7,17 +7,15 @@
 #ifndef T_LEXER_H
 #define T_LEXER_H
 
-#endif //T_LEXER_H
-
 enum Tokens{
     eof = 0,
     def = 1,
     ext = 2,
     identifier = 3,
     number = 4,
-};
+    };
 
-static int getToken();
+int getToken();
 
 static bool isWhiteSpace(char c);
 
@@ -35,3 +33,5 @@ static std::string digitRegex = "[0-9]";
 static std::string alphaNumRegex = "[a-zA-Z0-9]";
 static std::string alphaRegex = "[a-zA-Z]";
 static std::string whitespaceRegex = "\\s";
+
+#endif //T_LEXER_H

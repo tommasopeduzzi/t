@@ -7,7 +7,7 @@
 #include <iostream>
 #include "lexer.h"
 
-static int getToken(){
+int getToken(){
     static char LastChar = ' ';
 
     // Eat up Whitespace
