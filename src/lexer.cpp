@@ -5,6 +5,7 @@
 #include <string>
 #include <regex>
 #include <iostream>
+#include "error.h"
 #include "lexer.h"
 
 int getToken(){
@@ -37,7 +38,7 @@ int getToken(){
         do{
             if(LastChar == '.' || LastChar == '.'){
                 if(decimal){
-                    std::cout << ("Unexpected Character!");     //TODO: Errors and shit
+                    LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
                     return -1;
                 }
                 decimal = true;
