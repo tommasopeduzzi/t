@@ -66,7 +66,6 @@ int getToken(){
     if(LastChar == EOF){
         return eof;
     }
-
     // If something else; returns ascii value
     return int (LastChar);
 }

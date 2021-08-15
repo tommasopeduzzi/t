@@ -44,7 +44,7 @@ public:
     Callee(callee), Arguments(move(arguments)){}
 };
 
-class Function{
+class Function : public Node{
     std::string Name;
     std::vector<std::unique_ptr<Node>> Arguments;
     std::unique_ptr<Node> Body;
@@ -58,6 +58,16 @@ public:
     std::string getName(){
         return Name;
     }
+};
+
+class Extern : public Node {
+    std::string  Name;
+    std::vector<std::unique_ptr<Node>> Arguments;
+
+public:
+    Extern(const std::string name,
+           std::vector<std::unique_ptr<Node>> arguments) :
+           Name(name), Arguments(std::move(arguments)) {}
 };
 
 #endif //T_NODES_H
