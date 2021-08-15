@@ -1,6 +1,6 @@
 #include <iostream>
-#include "lexer.h"
+#include "parser.h"
 
 int main() {
-    std::cout << getToken();
+    Main();
 }

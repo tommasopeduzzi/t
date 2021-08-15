@@ -4,13 +4,51 @@
 #include <memory>
 #include "lexer.h"
 #include "parser.h"
-#include "nodes.h"
 #include "error.h"
+int CurrentToken;
 
+std::map<char, int> OperatorPrecedence{
+    {'<',1},
+    {'>', 1},
+    {'+', 2},
+    {'-', 2},
+    {'/', 3},
+    {'*', 3},
+    };
 
+void Main(){
+    getNextToken(); // get the first token
+    while(true){
+        switch(CurrentToken){
+            case eof:
+                return;
+            case identifier:
+                ParseIdentifier();
+                break;
+            case def:
+                ParseFunction();
+                break;
+            case ext:
+                ParseExtern();
+                break;
+            default:
+                ParseTopLevelExpression();
+                break;
+        }
+    }
+}
 
 int getNextToken(){
     return CurrentToken = getToken();
+}
+
+std::unique_ptr<Node> ParseTopLevelExpression(){
+    if(auto Expression = ParseExpression()){
+        return std::make_unique<Function>("__anon_expr",
+                                          std::vector<std::string>(),
+                                          std::move(Expression));
+    }
+    return nullptr;
 }
 
 std::unique_ptr<Node> ParseExpression() {
@@ -65,7 +103,7 @@ std::unique_ptr<Node> ParseFunction() {
         return nullptr;
     }
     getNextToken();
-    auto Arguments = ParseArguments();
+    auto Arguments = ParseArgumentDefinition();
 
     if(auto Body = ParseExpression()){
         return std::make_unique<Function>(Name, std::move(Arguments), std::move(Body));
@@ -81,14 +119,13 @@ std::unique_ptr<Node> ParseExtern(){
         return nullptr;
     }
     std::string Name = Identifier;
-
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
         LogErrorLineNo("expected Parenthese");
         return nullptr;
     }
-    getNextToken();
-    auto Arguments = ParseArguments();
+    getNextToken(); // eats '('
+    auto Arguments = ParseArgumentDefinition();
     return std::make_unique<Extern>(Name, Arguments);
 }
 
@@ -147,6 +184,7 @@ std::unique_ptr<Node> ParseIdentifier(){
 
 std::vector<std::unique_ptr<Node>> ParseArguments() {
     std::vector<std::unique_ptr<Node>> Arguments;
+    getNextToken();
     while(CurrentToken != ')'){
         if(auto Argument = ParseExpression()){
             Arguments.push_back(std::move(Argument));
@@ -158,6 +196,27 @@ std::vector<std::unique_ptr<Node>> ParseArguments() {
         getNextToken();
         if(CurrentToken == ',' ){
             getNextToken(); // eat ','
+        }
+        else if(CurrentToken == ')')
+        {
+            getNextToken(); // eat ')'
+            break;          // we are done, end of the arguments
+        }
+        else{
+            LogErrorLineNo("Unexpected character");
+            return {};
+        }
+    }
+    return Arguments;
+}
+
+std::vector<std::string> ParseArgumentDefinition() {
+    std::vector<std::string> Arguments;
+    while(CurrentToken == identifier){
+        Arguments.push_back(std::move(Identifier));
+        getNextToken();     // eat identifier
+        if(CurrentToken == ',' ){
+            getNextToken(); // eat ',' and continue
         }
         else if(CurrentToken == ')')
         {

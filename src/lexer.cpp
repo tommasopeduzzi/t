@@ -4,12 +4,15 @@
 
 #include <string>
 #include <regex>
-#include <iostream>
 #include "error.h"
 #include "lexer.h"
 
+double NumberValue;
+std::string Identifier;
+int lineNo = 0;
+
 int getToken(){
-    static char LastChar = ' ';
+    char LastChar = ' ';
 
     // Eat up Whitespace
     while(isWhiteSpace(LastChar)){
@@ -18,6 +21,7 @@ int getToken(){
 
     // Handle Identifiers
     if(isAlpha(LastChar)){
+        Identifier = "";
         Identifier += LastChar;
         while(isAlphaNum(LastChar = getchar()))
             Identifier += LastChar;
@@ -31,7 +35,7 @@ int getToken(){
     }
 
     // Handle Digits
-    if(isDigit(LastChar) || LastChar == '.' || LastChar == ','){
+    if(isDigit(LastChar) || LastChar == '.'){
         bool decimal;
         std::string NumberString;
 

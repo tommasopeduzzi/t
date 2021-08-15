@@ -5,6 +5,7 @@
 #ifndef T_NODES_H
 #define T_NODES_H
 
+#include <memory>
 #include <vector>
 
 class Node{
@@ -46,12 +47,12 @@ public:
 
 class Function : public Node{
     std::string Name;
-    std::vector<std::unique_ptr<Node>> Arguments;
+    std::vector<std::string> Arguments;
     std::unique_ptr<Node> Body;
 
 public:
     Function(const std::string name,
-             std::vector<std::unique_ptr<Node>> arguments,
+             std::vector<std::string> arguments,
              std::unique_ptr<Node> body) :
             Name(name), Arguments(move(arguments)), Body(move(body)) {}
 
@@ -62,11 +63,11 @@ public:
 
 class Extern : public Node {
     std::string  Name;
-    std::vector<std::unique_ptr<Node>> Arguments;
+    std::vector<std::string> Arguments;
 
 public:
     Extern(const std::string name,
-           std::vector<std::unique_ptr<Node>> arguments) :
+           std::vector<std::string> arguments) :
            Name(name), Arguments(std::move(arguments)) {}
 };
 

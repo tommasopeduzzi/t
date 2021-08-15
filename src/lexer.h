@@ -26,9 +26,9 @@ static bool isAlphaNum(char Char);
 static bool isDigit(char c);
 
 // TODO: Change NumberValue to llvm::Value
-static double NumberValue;
-static std::string Identifier;
-static int lineNo = 0;
+extern double NumberValue;
+extern std::string Identifier;
+extern int lineNo;
 static std::string digitRegex = "[0-9]";
 static std::string alphaNumRegex = "[a-zA-Z0-9]";
 static std::string alphaRegex = "[a-zA-Z]";

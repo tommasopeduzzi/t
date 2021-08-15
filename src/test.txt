@@ -1,3 +1,2 @@
-
-
-extern
+def test (w , q , r )
+    1 + 1
