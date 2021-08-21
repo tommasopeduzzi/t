@@ -24,15 +24,19 @@ void Main(){
                 return;
             case identifier:
                 ParseIdentifier();
+                std::cout << "parsed identifier";
                 break;
             case def:
                 ParseFunction();
+                std::cout << "parsed function declaration";
                 break;
             case ext:
                 ParseExtern();
+                std::cout << "parsed extern";
                 break;
             default:
                 ParseTopLevelExpression();
+                std::cout << "parsed toplevelexpression";
                 break;
         }
     }
