@@ -8,7 +8,6 @@
 #include <map>
 #include "nodes.h"
 
-
 int getNextToken();
 void Main();
 std::unique_ptr<Node> ParseTopLevelExpression();
