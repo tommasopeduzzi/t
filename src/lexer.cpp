@@ -10,9 +10,10 @@
 double NumberValue;
 std::string Identifier;
 int lineNo = 0;
+char LastChar = ' ';
 
 int getToken(){
-    char LastChar = ' ';
+
 
     // Eat up Whitespace
     while(isWhiteSpace(LastChar)){
@@ -40,7 +41,7 @@ int getToken(){
         std::string NumberString;
 
         do{
-            if(LastChar == '.' || LastChar == '.'){
+            if(LastChar == '.' || LastChar == ','){
                 if(decimal){
                     LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
                     return -1;
@@ -71,7 +72,9 @@ int getToken(){
         return eof;
     }
     // If something else; returns ascii value
-    return int (LastChar);
+    char returnValue = LastChar;
+    LastChar = getchar();
+    return int (returnValue);
 }
 
 static bool isDigit(char c) {

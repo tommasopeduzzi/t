@@ -14,7 +14,7 @@ std::map<char, int> OperatorPrecedence{
     {'-', 2},
     {'/', 3},
     {'*', 3},
-    };
+};
 
 void Main(){
     getNextToken(); // get the first token
@@ -35,8 +35,9 @@ void Main(){
                 std::cout << "parsed extern";
                 break;
             default:
+                std::cout << "trying to parse expression" << std::endl;
                 ParseTopLevelExpression();
-                std::cout << "parsed toplevelexpression";
+                std::cout << "parsed toplevelexpression" << std::endl;;
                 break;
         }
     }
@@ -65,11 +66,10 @@ std::unique_ptr<Node> ParseExpression() {
     return ParseBinaryOperatorRHS(0, std::move(LHS));
 }
 
-std::unique_ptr<Node> ParseBinaryOperatorRHS(int expectedPrecedence, std::unique_ptr<Node> LHS) {
+std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
     while(true){
         int TokenPrecedence = getOperatorPrecedence();
-
-        if(TokenPrecedence < expectedPrecedence){
+        if(TokenPrecedence < expressionPrecedence){
             return LHS; // It's not a binary expression, just return the left side.
         }
 
@@ -106,7 +106,7 @@ std::unique_ptr<Node> ParseFunction() {
         LogErrorLineNo("expected Parenthese");
         return nullptr;
     }
-    getNextToken();
+    getNextToken();     // eat '('
     auto Arguments = ParseArgumentDefinition();
 
     if(auto Body = ParseExpression()){
@@ -149,7 +149,7 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
 
 std::unique_ptr<Number> ParseNumber(){
     auto number = std::make_unique<Number>(NumberValue);
-    getNextToken();
+    getNextToken(); // eat number
     return std::move(number);
 }
 
@@ -163,7 +163,7 @@ std::unique_ptr<Node> ParseParentheses(){
     }
 
     if(CurrentToken != '('){
-        LogErrorLineNo("Expected '('");
+        LogErrorLineNo("Expected '(' ");
         return nullptr;
     }
     getNextToken();
@@ -173,7 +173,7 @@ std::unique_ptr<Node> ParseParentheses(){
 std::unique_ptr<Node> ParseIdentifier(){
     std::string Name = Identifier;
 
-    getNextToken();
+    getNextToken(); // eat identifier
 
     if(CurrentToken != '(')
         // simple variable
@@ -188,7 +188,6 @@ std::unique_ptr<Node> ParseIdentifier(){
 
 std::vector<std::unique_ptr<Node>> ParseArguments() {
     std::vector<std::unique_ptr<Node>> Arguments;
-    getNextToken();
     while(CurrentToken != ')'){
         if(auto Argument = ParseExpression()){
             Arguments.push_back(std::move(Argument));
@@ -236,7 +235,17 @@ std::vector<std::string> ParseArgumentDefinition() {
 }
 
 int getOperatorPrecedence(){
-    if(!isascii(CurrentToken))
+    //return 2;   //TODO: WTF?????
+    std::cout << "CurrentToken: " << CurrentToken << std::endl;
+    if(!isascii(CurrentToken)){
         return -1;
-    return OperatorPrecedence[CurrentToken] <=0 ? -1 : OperatorPrecedence[CurrentToken];
+    }
+    std::cout << OperatorPrecedence[CurrentToken] << std::endl;
+    auto test1 = OperatorPrecedence;
+    auto test =  OperatorPrecedence.find(CurrentToken);
+    if(test == OperatorPrecedence.end()){
+        LogErrorLineNo("Unrecognized Operator!");
+        return -1;      // couldn't find operator
+    }
+    return OperatorPrecedence[CurrentToken] < 0 ? -1 : OperatorPrecedence[CurrentToken];
 }

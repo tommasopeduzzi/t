@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.cpp
+lexer.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
+error.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
+string
+-
+iostream
+-
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
+string
+-
+

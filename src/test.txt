@@ -1,2 +1,2 @@
-def test (w , q , r )
-    1 + 1
+def sin ( i )
+    i + 1

@@ -29,6 +29,7 @@ static bool isDigit(char c);
 extern double NumberValue;
 extern std::string Identifier;
 extern int lineNo;
+extern char LastChar;
 static std::string digitRegex = "[0-9]";
 static std::string alphaNumRegex = "[a-zA-Z0-9]";
 static std::string alphaRegex = "[a-zA-Z]";
