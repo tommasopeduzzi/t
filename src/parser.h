@@ -8,8 +8,17 @@
 #include <map>
 #include "nodes.h"
 
+static std::map<char, int> OperatorPrecedence{
+        {'<',1},
+        {'>', 1},
+        {'+', 2},
+        {'-', 2},
+        {'/', 3},
+        {'*', 3},
+};
+
 int getNextToken();
-void Main();
+std::vector<std::unique_ptr<Node>> ParseProgram();
 std::unique_ptr<Node> ParseTopLevelExpression();
 std::unique_ptr<Node> ParseExpression();
 std::unique_ptr<Node> ParsePrimaryExpression();

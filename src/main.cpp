@@ -2,5 +2,5 @@
 #include "parser.h"
 
 int main() {
-    Main();
+    ParseProgram();
 }

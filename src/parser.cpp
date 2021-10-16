@@ -7,40 +7,33 @@
 #include "error.h"
 int CurrentToken;
 
-std::map<char, int> OperatorPrecedence{
-    {'<',1},
-    {'>', 1},
-    {'+', 2},
-    {'-', 2},
-    {'/', 3},
-    {'*', 3},
-};
-
-void Main(){
+std::vector<std::unique_ptr<Node>> ParseProgram(){
+    std::vector<std::unique_ptr<Node>> Nodes = {};
     getNextToken(); // get the first token
     while(true){
         switch(CurrentToken){
             case eof:
-                return;
+                return Nodes;
             case identifier:
-                ParseIdentifier();
+                Nodes.push_back(ParseIdentifier());
                 std::cout << "parsed identifier";
                 break;
             case def:
-                ParseFunction();
+                Nodes.push_back(ParseFunction());
                 std::cout << "parsed function declaration";
                 break;
             case ext:
-                ParseExtern();
+                Nodes.push_back(ParseExtern());
                 std::cout << "parsed extern";
                 break;
             default:
                 std::cout << "trying to parse expression" << std::endl;
-                ParseTopLevelExpression();
+                Nodes.push_back(ParseTopLevelExpression());
                 std::cout << "parsed toplevelexpression" << std::endl;;
                 break;
         }
     }
+    return Nodes;
 }
 
 int getNextToken(){
@@ -77,6 +70,7 @@ std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::uniq
 
         // Parse right side:
         getNextToken();
+
         auto RHS = ParsePrimaryExpression();
         if(!RHS){
             return nullptr;
@@ -196,7 +190,7 @@ std::vector<std::unique_ptr<Node>> ParseArguments() {
             LogErrorLineNo("Invalid Arguments");
             return {};
         }
-        getNextToken();
+
         if(CurrentToken == ',' ){
             getNextToken(); // eat ','
         }
@@ -235,17 +229,7 @@ std::vector<std::string> ParseArgumentDefinition() {
 }
 
 int getOperatorPrecedence(){
-    //return 2;   //TODO: WTF?????
-    std::cout << "CurrentToken: " << CurrentToken << std::endl;
-    if(!isascii(CurrentToken)){
+    if(!isascii(CurrentToken) || OperatorPrecedence[CurrentToken] <= 0)
         return -1;
-    }
-    std::cout << OperatorPrecedence[CurrentToken] << std::endl;
-    auto test1 = OperatorPrecedence;
-    auto test =  OperatorPrecedence.find(CurrentToken);
-    if(test == OperatorPrecedence.end()){
-        LogErrorLineNo("Unrecognized Operator!");
-        return -1;      // couldn't find operator
-    }
-    return OperatorPrecedence[CurrentToken] < 0 ? -1 : OperatorPrecedence[CurrentToken];
+    return OperatorPrecedence[CurrentToken];
 }

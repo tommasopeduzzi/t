@@ -1,2 +1,6 @@
-def sin ( i )
+def sin(i)
     i + 1
+
+1+1
+
+sin(1)
