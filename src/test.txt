@@ -1,6 +1,6 @@
-def sin(i)
+def increaseByOne(i)
     i + 1
 
 1+1
 
-sin(1)
+increaseByOne(1)

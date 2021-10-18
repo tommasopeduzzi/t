@@ -25,7 +25,6 @@ static bool isAlphaNum(char Char);
 
 static bool isDigit(char c);
 
-// TODO: Change NumberValue to llvm::Value
 extern double NumberValue;
 extern std::string Identifier;
 extern int lineNo;

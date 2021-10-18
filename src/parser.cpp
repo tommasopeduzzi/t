@@ -16,20 +16,15 @@ std::vector<std::unique_ptr<Node>> ParseProgram(){
                 return Nodes;
             case identifier:
                 Nodes.push_back(ParseIdentifier());
-                std::cout << "parsed identifier";
                 break;
             case def:
                 Nodes.push_back(ParseFunction());
-                std::cout << "parsed function declaration";
                 break;
             case ext:
                 Nodes.push_back(ParseExtern());
-                std::cout << "parsed extern";
                 break;
             default:
-                std::cout << "trying to parse expression" << std::endl;
                 Nodes.push_back(ParseTopLevelExpression());
-                std::cout << "parsed toplevelexpression" << std::endl;;
                 break;
         }
     }
