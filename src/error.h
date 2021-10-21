@@ -6,8 +6,9 @@
 #define T_ERROR_H
 
 #include <string>
+#include "nodes.h"
 #include <iostream>
 
-void LogError(const std::string message);
+llvm::Value *LogError(const std::string message);
 void LogErrorLineNo(const std::string message);
 #endif //T_ERROR_H

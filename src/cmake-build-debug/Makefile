@@ -168,6 +168,30 @@ intrinsics_gen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/intrinsics_gen.dir/build.make CMakeFiles/intrinsics_gen.dir/build
 .PHONY : intrinsics_gen/fast
 
+codegen.o: codegen.cpp.o
+.PHONY : codegen.o
+
+# target to build an object file
+codegen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/t.dir/build.make CMakeFiles/t.dir/codegen.cpp.o
+.PHONY : codegen.cpp.o
+
+codegen.i: codegen.cpp.i
+.PHONY : codegen.i
+
+# target to preprocess a source file
+codegen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/t.dir/build.make CMakeFiles/t.dir/codegen.cpp.i
+.PHONY : codegen.cpp.i
+
+codegen.s: codegen.cpp.s
+.PHONY : codegen.s
+
+# target to generate assembly for a file
+codegen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/t.dir/build.make CMakeFiles/t.dir/codegen.cpp.s
+.PHONY : codegen.cpp.s
+
 error.o: error.cpp.o
 .PHONY : error.o
 
@@ -276,6 +300,9 @@ help:
 	@echo "... intrinsics_gen"
 	@echo "... omp_gen"
 	@echo "... t"
+	@echo "... codegen.o"
+	@echo "... codegen.i"
+	@echo "... codegen.s"
 	@echo "... error.o"
 	@echo "... error.i"
 	@echo "... error.s"

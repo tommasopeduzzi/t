@@ -13,7 +13,7 @@ enum Tokens{
     ext = 2,
     identifier = 3,
     number = 4,
-    };
+};
 
 int getToken();
 

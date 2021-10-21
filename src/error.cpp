@@ -3,12 +3,14 @@
 //
 
 #include "lexer.h"
+#include "nodes.h"
 #include "error.h"
 
 void LogErrorLineNo(const std::string message){
     std::cerr << message << " on line " << lineNo << std::endl;
 }
 
-void LogError(const std::string message){
+llvm::Value *LogError(const std::string message){
     std::cerr << message << std::endl;
+    return nullptr;
 }

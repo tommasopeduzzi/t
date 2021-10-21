@@ -1,6 +1,7 @@
 def increaseByOne(i)
     i + 1
 
-1+1
+1+2
 
+extern sin(i)
 increaseByOne(1)

@@ -14,7 +14,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Add main.cpp file of project root directory as source file
-set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp)
+set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp)
 
 # Add executable target with source files listed in SOURCE_FILES variable
 add_executable(t ${SOURCE_FILES})

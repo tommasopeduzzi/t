@@ -18,15 +18,19 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
 
+void InitializeModule();
+
 class Node{
 public:
     virtual ~Node() {}
+    virtual llvm::Value *codegen() = 0;
 };
 
 class Number : public Node{
     double Value;
 public:
     Number(const double value) : Value(value) {}
+    virtual llvm::Value *codegen();
 };
 
 class Variable : public Node{
@@ -34,6 +38,7 @@ class Variable : public Node{
 
 public:
     Variable(const std::string name) : Name(name){}
+    virtual llvm::Value *codegen();
 };
 
 class BinaryExpression : public Node{
@@ -44,6 +49,7 @@ public:
     BinaryExpression(char op, std::unique_ptr<Node> lhs,
                             std::unique_ptr<Node> rhs):
                             Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
+    virtual llvm::Value *codegen();
 };
 
 class Call : public Node{
@@ -53,6 +59,7 @@ class Call : public Node{
 public:
     Call(const std::string callee, std::vector<std::unique_ptr<Node>> arguments) :
     Callee(callee), Arguments(move(arguments)){}
+    virtual llvm::Value *codegen();
 };
 
 class Function : public Node{
@@ -65,10 +72,7 @@ public:
              std::vector<std::string> arguments,
              std::unique_ptr<Node> body) :
             Name(name), Arguments(move(arguments)), Body(move(body)) {}
-
-    std::string getName(){
-        return Name;
-    }
+    virtual llvm::Value *codegen();
 };
 
 class Extern : public Node {
@@ -79,6 +83,7 @@ public:
     Extern(const std::string name,
            std::vector<std::string> arguments) :
            Name(name), Arguments(std::move(arguments)) {}
+    virtual llvm::Value *codegen();
 };
 
 #endif //T_NODES_H
