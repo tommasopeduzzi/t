@@ -4,19 +4,33 @@
 
 #include "nodes.h"
 #include "error.h"
+#include "llvm/ExecutionEngine/Orc/LLJIT.h"
 #include <map>
 static std::unique_ptr<llvm::LLVMContext> Context;
 static std::unique_ptr<llvm::IRBuilder<>> Builder;
 static std::unique_ptr<llvm::Module> Module;
+static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
 static std::map<std::string, llvm::Value *> Variables;
 
-void InitializeModule() {
-    // Open a new context and module.
-    Context = std::make_unique<llvm::LLVMContext>();
+void InitializeModule(){
+    // Open a new module.
     Module = std::make_unique<llvm::Module>("t", *Context);
+}
 
+void InitializeLLVM() {
+    // TODO: Make my own JIT, see tutorial @ llvm.org
+    Context = std::make_unique<llvm::LLVMContext>();
+    InitializeModule();
     // Create a new builder for the module.
     Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
+    // Create a new pass manager attached to it.
+    FunctionOptimizer = std::make_unique<llvm::FunctionPassManager>();
+
+    /* TODO: Figure out how the new PassSystem works / figure
+     out where tf to get the passes from, don't want to write my own.
+     Also figure out if I really want to actually use the new PassManager,
+     as I read that I can't use Platform-dependant backend.*/
+
 }
 
 llvm::Value *Number::codegen() {
@@ -123,6 +137,6 @@ llvm::Value *Extern::codegen() {
             Argument.setName(Arguments[i]);
             i += 1;
         }
-    }g
+    }
     return Function;
 }

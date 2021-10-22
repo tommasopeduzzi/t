@@ -14,9 +14,6 @@ std::vector<std::unique_ptr<Node>> ParseProgram(){
         switch(CurrentToken){
             case eof:
                 return Nodes;
-            case identifier:
-                Nodes.push_back(ParseIdentifier());
-                break;
             case def:
                 Nodes.push_back(ParseFunction());
                 break;

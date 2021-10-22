@@ -14,10 +14,10 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Add main.cpp file of project root directory as source file
-set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp)
+set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp ../include/KaleidoscopeJIT.h codegen.h)
 
 # Add executable target with source files listed in SOURCE_FILES variable
-add_executable(t ${SOURCE_FILES})
+add_executable(t ${SOURCE_FILES} ../include/KaleidoscopeJIT.h codegen.h)
 
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 

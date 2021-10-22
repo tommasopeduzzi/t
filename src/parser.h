@@ -16,7 +16,7 @@ static std::map<char, int> OperatorPrecedence{
         {'/', 3},
         {'*', 3},
 };
-
+extern int CurrentToken;
 int getNextToken();
 std::vector<std::unique_ptr<Node>> ParseProgram();
 std::unique_ptr<Node> ParseTopLevelExpression();
