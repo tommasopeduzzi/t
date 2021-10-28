@@ -4,11 +4,10 @@
 
 #include "nodes.h"
 #include "error.h"
-#include "llvm/ExecutionEngine/Orc/LLJIT.h"
 #include <map>
-static std::unique_ptr<llvm::LLVMContext> Context;
-static std::unique_ptr<llvm::IRBuilder<>> Builder;
-static std::unique_ptr<llvm::Module> Module;
+std::unique_ptr<llvm::LLVMContext> Context;
+std::unique_ptr<llvm::IRBuilder<>> Builder;
+std::unique_ptr<llvm::Module> Module;
 static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
 static std::map<std::string, llvm::Value *> Variables;
 

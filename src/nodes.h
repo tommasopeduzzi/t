@@ -25,12 +25,14 @@
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 
 void InitializeLLVM();
 
 class Node{
 public:
-    virtual ~Node() {}
+    virtual ~Node() = default;
     virtual llvm::Value *codegen() = 0;
 };
 

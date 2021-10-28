@@ -1,4 +1,4 @@
-#include <iostream>
+#include <memory>
 #include "parser.h"
 #include "nodes.h"
 #include "lexer.h"
@@ -9,11 +9,10 @@ void HandleExpression();
 void HandleExternDeclaration();
 
 void HandleFunctionDefinition();
-
+llvm::ExitOnError ExitOnErr;
 int main() {
-//    llvm::InitializeNativeTarget();
-//    llvm::InitializeNativeTargetAsmPrinter();
-//    llvm::InitializeNativeTargetAsmParser();
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
     getNextToken(); // get the first token
     while (true) {
@@ -58,10 +57,25 @@ void HandleExternDeclaration() {
 }
 
 void HandleExpression() {
-    if(auto Expression = ParseTopLevelExpression()){
+gith    if(auto Expression = ParseTopLevelExpression()){
         if(auto ExpressionIR = Expression->codegen()){
-            ExpressionIR->print(llvm::errs());
-            fprintf(stderr, "\n");
+            // Try to detect the host arch and construct an LLJIT instance.
+            auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
+
+            if (!JIT)
+                return;
+
+            if (auto Err = JIT.get()->addIRModule(
+                    llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
+                return;
+
+            auto EntrySym = JIT->lookup("__anon_expr");
+            if (!EntrySym)
+                return;
+
+            auto *Expr = (double(*)())EntrySym->getAddress();
+
+            fprintf(stderr, "Evaluated to %f\n", Expr());
         }
     }
     else{

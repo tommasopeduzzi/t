@@ -6,23 +6,23 @@
 
 #IncludeRegexTransform: 
 
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.cpp
-nodes.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
-error.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
-llvm/ExecutionEngine/Orc/LLJIT.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/llvm/ExecutionEngine/Orc/LLJIT.h
-map
--
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.h
 
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
 string
 -
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/main.cpp
+memory
+-
+parser.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.h
 nodes.h
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
-iostream
--
+lexer.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
+codegen.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.h
 
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
 memory
@@ -65,6 +65,16 @@ llvm/Transforms/Scalar.h
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/llvm/Transforms/Scalar.h
 llvm/Transforms/Scalar/GVN.h
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/llvm/Transforms/Scalar/GVN.h
+llvm/ExecutionEngine/Orc/LLJIT.h
+-
+llvm/ExecutionEngine/Orc/ThreadSafeModule.h
+-
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.h
+map
+-
+nodes.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
 
 /usr/local/opt/llvm/include/llvm-c/DataTypes.h
 inttypes.h
@@ -119,7 +129,7 @@ climits
 -
 cstring
 -
-string
+utility
 -
 
 /usr/local/opt/llvm/include/llvm/ADT/APSInt.h
@@ -251,16 +261,8 @@ utility
 -
 
 /usr/local/opt/llvm/include/llvm/ADT/DenseMapInfo.h
-llvm/ADT/APInt.h
-/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/APInt.h
-llvm/ADT/APSInt.h
-/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/APSInt.h
-llvm/ADT/ArrayRef.h
-/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/ArrayRef.h
 llvm/ADT/Hashing.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/Hashing.h
-llvm/ADT/StringRef.h
-/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/StringRef.h
 cassert
 -
 cstddef
@@ -327,6 +329,8 @@ llvm/ADT/PointerIntPair.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/PointerIntPair.h
 llvm/ADT/PointerUnion.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/PointerUnion.h
+llvm/ADT/STLForwardCompat.h
+/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/STLForwardCompat.h
 llvm/Support/MemAlloc.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/Support/MemAlloc.h
 llvm/Support/type_traits.h
@@ -399,6 +403,8 @@ llvm/ADT/Hashing.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/Hashing.h
 llvm/ADT/None.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/None.h
+llvm/ADT/STLForwardCompat.h
+/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/STLForwardCompat.h
 llvm/Support/Compiler.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/Support/Compiler.h
 llvm/Support/type_traits.h
@@ -463,6 +469,8 @@ vector
 /usr/local/opt/llvm/include/llvm/ADT/STLExtras.h
 llvm/ADT/Optional.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/Optional.h
+llvm/ADT/STLForwardCompat.h
+/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/STLForwardCompat.h
 llvm/ADT/iterator.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/iterator.h
 llvm/ADT/iterator_range.h
@@ -498,6 +506,10 @@ type_traits
 utility
 -
 random
+-
+
+/usr/local/opt/llvm/include/llvm/ADT/STLForwardCompat.h
+type_traits
 -
 
 /usr/local/opt/llvm/include/llvm/ADT/SetVector.h
@@ -557,8 +569,6 @@ llvm/Support/Compiler.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/Support/Compiler.h
 llvm/Support/ErrorHandling.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/Support/ErrorHandling.h
-llvm/Support/MathExtras.h
-/usr/local/opt/llvm/include/llvm/ADT/llvm/Support/MathExtras.h
 llvm/Support/MemAlloc.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/Support/MemAlloc.h
 llvm/Support/type_traits.h
@@ -572,6 +582,8 @@ cstddef
 cstdlib
 -
 cstring
+-
+functional
 -
 initializer_list
 -
@@ -589,6 +601,8 @@ utility
 -
 
 /usr/local/opt/llvm/include/llvm/ADT/StringExtras.h
+llvm/ADT/APSInt.h
+/usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/APSInt.h
 llvm/ADT/ArrayRef.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/ArrayRef.h
 llvm/ADT/SmallString.h
@@ -701,6 +715,8 @@ cstdint
 -
 string
 -
+string_view
+-
 
 /usr/local/opt/llvm/include/llvm/ADT/fallible_iterator.h
 llvm/ADT/PointerIntPair.h
@@ -759,8 +775,6 @@ type_traits
 /usr/local/opt/llvm/include/llvm/ADT/iterator.h
 llvm/ADT/iterator_range.h
 /usr/local/opt/llvm/include/llvm/ADT/llvm/ADT/iterator_range.h
-algorithm
--
 cstddef
 -
 iterator
@@ -1449,6 +1463,8 @@ llvm/ADT/ArrayRef.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/ArrayRef.h
 llvm/ADT/Optional.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/Optional.h
+llvm/ADT/SmallString.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/ADT/SmallString.h
 llvm/ADT/StringRef.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/StringRef.h
 llvm/ADT/iterator_range.h
@@ -1615,6 +1631,8 @@ llvm/Support/MathExtras.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/Support/MathExtras.h
 llvm/Support/Alignment.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/Support/Alignment.h
+llvm/Support/TrailingObjects.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/Support/TrailingObjects.h
 llvm/Support/TypeSize.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/Support/TypeSize.h
 cassert
@@ -1653,6 +1671,10 @@ llvm/IR/Metadata.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/IR/Metadata.h
 llvm/Support/Casting.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/Support/Casting.h
+llvm/Support/CommandLine.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/Support/CommandLine.h
+llvm/Support/Discriminator.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/Support/Discriminator.h
 cassert
 -
 climits
@@ -1819,10 +1841,6 @@ llvm/IR/Value.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/IR/Value.h
 llvm/Support/Alignment.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/Support/Alignment.h
-string
--
-utility
--
 
 /usr/local/opt/llvm/include/llvm/IR/GlobalValue.h
 llvm/ADT/StringRef.h
@@ -2067,6 +2085,8 @@ llvm/ADT/ArrayRef.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/ArrayRef.h
 llvm/ADT/Bitfields.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/Bitfields.h
+llvm/ADT/MapVector.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/ADT/MapVector.h
 llvm/ADT/None.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/None.h
 llvm/ADT/STLExtras.h
@@ -2129,6 +2149,8 @@ iterator
 /usr/local/opt/llvm/include/llvm/IR/IntrinsicInst.h
 llvm/IR/Constants.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/IR/Constants.h
+llvm/IR/DebugInfoMetadata.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/IR/DebugInfoMetadata.h
 llvm/IR/DerivedTypes.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/IR/DerivedTypes.h
 llvm/IR/FPEnv.h
@@ -2313,6 +2335,8 @@ llvm/IR/User.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/IR/User.h
 
 /usr/local/opt/llvm/include/llvm/IR/Operator.h
+llvm/ADT/MapVector.h
+/usr/local/opt/llvm/include/llvm/IR/llvm/ADT/MapVector.h
 llvm/ADT/None.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/None.h
 llvm/ADT/Optional.h
@@ -2340,6 +2364,8 @@ llvm/ADT/SmallVector.h
 llvm/ADT/StringMap.h
 /usr/local/opt/llvm/include/llvm/IR/llvm/ADT/StringMap.h
 type_traits
+-
+vector
 -
 
 /usr/local/opt/llvm/include/llvm/IR/PassManager.h
@@ -2888,6 +2914,50 @@ ctime
 
 /usr/local/opt/llvm/include/llvm/Support/CodeGen.h
 
+/usr/local/opt/llvm/include/llvm/Support/CommandLine.h
+llvm/ADT/ArrayRef.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/ArrayRef.h
+llvm/ADT/None.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/None.h
+llvm/ADT/Optional.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/Optional.h
+llvm/ADT/STLExtras.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/STLExtras.h
+llvm/ADT/SmallPtrSet.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/SmallPtrSet.h
+llvm/ADT/SmallVector.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/SmallVector.h
+llvm/ADT/StringMap.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/StringMap.h
+llvm/ADT/StringRef.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/StringRef.h
+llvm/ADT/Twine.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/Twine.h
+llvm/ADT/iterator_range.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/iterator_range.h
+llvm/Support/ErrorHandling.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/ErrorHandling.h
+llvm/Support/ManagedStatic.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/ManagedStatic.h
+llvm/Support/raw_ostream.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/raw_ostream.h
+cassert
+-
+climits
+-
+cstddef
+-
+functional
+-
+initializer_list
+-
+string
+-
+type_traits
+-
+vector
+-
+
 /usr/local/opt/llvm/include/llvm/Support/Compiler.h
 llvm/Config/llvm-config.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Config/llvm-config.h
@@ -2907,6 +2977,12 @@ llvm-c/DataTypes.h
 /usr/local/opt/llvm/include/llvm/Support/llvm-c/DataTypes.h
 
 /usr/local/opt/llvm/include/llvm/Support/Debug.h
+
+/usr/local/opt/llvm/include/llvm/Support/Discriminator.h
+llvm/Support/Error.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/Error.h
+assert.h
+-
 
 /usr/local/opt/llvm/include/llvm/Support/DynamicLibrary.h
 string
@@ -3134,11 +3210,15 @@ cstdint
 llvm/Support/Error.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Support/Error.h
 
+/usr/local/opt/llvm/include/llvm/Support/ManagedStatic.h
+atomic
+-
+cstddef
+-
+
 /usr/local/opt/llvm/include/llvm/Support/MathExtras.h
 llvm/Support/Compiler.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Support/Compiler.h
-algorithm
--
 cassert
 -
 climits
@@ -3349,6 +3429,8 @@ llvm/ADT/FunctionExtras.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/ADT/FunctionExtras.h
 llvm/ADT/SmallVector.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/ADT/SmallVector.h
+llvm/ADT/StringRef.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/ADT/StringRef.h
 llvm/Config/llvm-config.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Config/llvm-config.h
 llvm/Support/Compiler.h
@@ -3367,6 +3449,22 @@ llvm/Support/Error.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Support/Error.h
 llvm/Support/raw_ostream.h
 /usr/local/opt/llvm/include/llvm/Support/llvm/Support/raw_ostream.h
+
+/usr/local/opt/llvm/include/llvm/Support/TrailingObjects.h
+llvm/Support/AlignOf.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/AlignOf.h
+llvm/Support/Alignment.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/Alignment.h
+llvm/Support/Compiler.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/Compiler.h
+llvm/Support/MathExtras.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/MathExtras.h
+llvm/Support/type_traits.h
+/usr/local/opt/llvm/include/llvm/Support/llvm/Support/type_traits.h
+new
+-
+type_traits
+-
 
 /usr/local/opt/llvm/include/llvm/Support/TypeName.h
 llvm/ADT/StringRef.h
@@ -3412,6 +3510,8 @@ cstdint
 cstring
 -
 string
+-
+string_view
 -
 system_error
 -
