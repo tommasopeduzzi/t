@@ -6,7 +6,23 @@
 
 #IncludeRegexTransform: 
 
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.cpp
+nodes.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
+error.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
+map
+-
+
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.h
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
+string
+-
+nodes.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
+iostream
+-
 
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
 string

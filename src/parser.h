@@ -18,7 +18,6 @@ static std::map<char, int> OperatorPrecedence{
 };
 extern int CurrentToken;
 int getNextToken();
-std::vector<std::unique_ptr<Node>> ParseProgram();
 std::unique_ptr<Node> ParseTopLevelExpression();
 std::unique_ptr<Node> ParseExpression();
 std::unique_ptr<Node> ParsePrimaryExpression();

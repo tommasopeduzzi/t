@@ -9,7 +9,12 @@ void HandleExpression();
 void HandleExternDeclaration();
 
 void HandleFunctionDefinition();
+
+void RunEntry();
+
 llvm::ExitOnError ExitOnErr;
+std::vector<std::unique_ptr<Node>> TopLevelExpressions;
+
 int main() {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
@@ -18,6 +23,7 @@ int main() {
     while (true) {
         switch (CurrentToken) {
             case eof:
+                RunEntry();
                 return 0;
             case def:
                 HandleFunctionDefinition();
@@ -29,6 +35,30 @@ int main() {
                 HandleExpression();
                 break;
         }
+    }
+}
+
+void RunEntry(){
+    auto entryFunction = std::make_unique<Function>("entry",
+                                                    std::vector<std::string>(),
+                                                    std::move(TopLevelExpressions));
+    if(auto entry = entryFunction->codegen()){
+        auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
+
+        if (!JIT)
+            return;
+
+        if (auto Err = JIT.get()->addIRModule(
+                llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
+            return;
+
+        auto EntrySym = JIT->lookup("entry");
+        if (!EntrySym)
+            return;
+
+        auto *Expr = (double(*)())EntrySym->getAddress();
+
+        fprintf(stderr, "Evaluated to %f\n", Expr());
     }
 }
 
@@ -55,32 +85,11 @@ void HandleExternDeclaration() {
         getNextToken();
     }
 }
-
 void HandleExpression() {
-gith    if(auto Expression = ParseTopLevelExpression()){
-        if(auto ExpressionIR = Expression->codegen()){
-            // Try to detect the host arch and construct an LLJIT instance.
-            auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-
-            if (!JIT)
-                return;
-
-            if (auto Err = JIT.get()->addIRModule(
-                    llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
-                return;
-
-            auto EntrySym = JIT->lookup("__anon_expr");
-            if (!EntrySym)
-                return;
-
-            auto *Expr = (double(*)())EntrySym->getAddress();
-
-            fprintf(stderr, "Evaluated to %f\n", Expr());
-        }
+    if(auto Expression = ParseExpression()){
+        TopLevelExpressions.push_back(std::move(Expression));
     }
     else{
         getNextToken();
     }
 }
-
-

@@ -115,7 +115,8 @@ llvm::Value *Function::codegen() {
         Variables[std::string(Arg.getName())] = &Arg;
     }
 
-    if(llvm::Value *ReturnValue = Body->codegen()){
+    //TODO: be able to have multiple statements in the body
+    if(llvm::Value *ReturnValue = Body[0]->codegen()){
         Builder->CreateRet(ReturnValue);
         return Function;
     }

@@ -34,6 +34,7 @@ CMakeFiles/t.dir/codegen.cpp.o: \
  /usr/local/opt/llvm/include/llvm/ADT/PointerUnion.h \
  /usr/local/opt/llvm/include/llvm/ADT/PostOrderIterator.h \
  /usr/local/opt/llvm/include/llvm/ADT/STLExtras.h \
+ /usr/local/opt/llvm/include/llvm/ADT/STLForwardCompat.h \
  /usr/local/opt/llvm/include/llvm/ADT/SetVector.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallPtrSet.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallString.h \
@@ -176,9 +177,11 @@ CMakeFiles/t.dir/codegen.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/Casting.h \
  /usr/local/opt/llvm/include/llvm/Support/Chrono.h \
  /usr/local/opt/llvm/include/llvm/Support/CodeGen.h \
+ /usr/local/opt/llvm/include/llvm/Support/CommandLine.h \
  /usr/local/opt/llvm/include/llvm/Support/Compiler.h \
  /usr/local/opt/llvm/include/llvm/Support/DataTypes.h \
  /usr/local/opt/llvm/include/llvm/Support/Debug.h \
+ /usr/local/opt/llvm/include/llvm/Support/Discriminator.h \
  /usr/local/opt/llvm/include/llvm/Support/DynamicLibrary.h \
  /usr/local/opt/llvm/include/llvm/Support/Endian.h \
  /usr/local/opt/llvm/include/llvm/Support/Error.h \
@@ -193,6 +196,7 @@ CMakeFiles/t.dir/codegen.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/GenericDomTree.h \
  /usr/local/opt/llvm/include/llvm/Support/MD5.h \
  /usr/local/opt/llvm/include/llvm/Support/MSVCErrorWorkarounds.h \
+ /usr/local/opt/llvm/include/llvm/Support/ManagedStatic.h \
  /usr/local/opt/llvm/include/llvm/Support/MathExtras.h \
  /usr/local/opt/llvm/include/llvm/Support/MemAlloc.h \
  /usr/local/opt/llvm/include/llvm/Support/Memory.h \
@@ -210,6 +214,7 @@ CMakeFiles/t.dir/codegen.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/ThreadPool.h \
  /usr/local/opt/llvm/include/llvm/Support/Threading.h \
  /usr/local/opt/llvm/include/llvm/Support/TimeProfiler.h \
+ /usr/local/opt/llvm/include/llvm/Support/TrailingObjects.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeName.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeSize.h \
  /usr/local/opt/llvm/include/llvm/Support/WithColor.h \
@@ -259,6 +264,7 @@ CMakeFiles/t.dir/error.cpp.o: \
  /usr/local/opt/llvm/include/llvm/ADT/PointerUnion.h \
  /usr/local/opt/llvm/include/llvm/ADT/PostOrderIterator.h \
  /usr/local/opt/llvm/include/llvm/ADT/STLExtras.h \
+ /usr/local/opt/llvm/include/llvm/ADT/STLForwardCompat.h \
  /usr/local/opt/llvm/include/llvm/ADT/SetVector.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallPtrSet.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallString.h \
@@ -401,9 +407,11 @@ CMakeFiles/t.dir/error.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/Casting.h \
  /usr/local/opt/llvm/include/llvm/Support/Chrono.h \
  /usr/local/opt/llvm/include/llvm/Support/CodeGen.h \
+ /usr/local/opt/llvm/include/llvm/Support/CommandLine.h \
  /usr/local/opt/llvm/include/llvm/Support/Compiler.h \
  /usr/local/opt/llvm/include/llvm/Support/DataTypes.h \
  /usr/local/opt/llvm/include/llvm/Support/Debug.h \
+ /usr/local/opt/llvm/include/llvm/Support/Discriminator.h \
  /usr/local/opt/llvm/include/llvm/Support/DynamicLibrary.h \
  /usr/local/opt/llvm/include/llvm/Support/Endian.h \
  /usr/local/opt/llvm/include/llvm/Support/Error.h \
@@ -418,6 +426,7 @@ CMakeFiles/t.dir/error.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/GenericDomTree.h \
  /usr/local/opt/llvm/include/llvm/Support/MD5.h \
  /usr/local/opt/llvm/include/llvm/Support/MSVCErrorWorkarounds.h \
+ /usr/local/opt/llvm/include/llvm/Support/ManagedStatic.h \
  /usr/local/opt/llvm/include/llvm/Support/MathExtras.h \
  /usr/local/opt/llvm/include/llvm/Support/MemAlloc.h \
  /usr/local/opt/llvm/include/llvm/Support/Memory.h \
@@ -435,6 +444,7 @@ CMakeFiles/t.dir/error.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/ThreadPool.h \
  /usr/local/opt/llvm/include/llvm/Support/Threading.h \
  /usr/local/opt/llvm/include/llvm/Support/TimeProfiler.h \
+ /usr/local/opt/llvm/include/llvm/Support/TrailingObjects.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeName.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeSize.h \
  /usr/local/opt/llvm/include/llvm/Support/WithColor.h \
@@ -484,6 +494,7 @@ CMakeFiles/t.dir/lexer.cpp.o: \
  /usr/local/opt/llvm/include/llvm/ADT/PointerUnion.h \
  /usr/local/opt/llvm/include/llvm/ADT/PostOrderIterator.h \
  /usr/local/opt/llvm/include/llvm/ADT/STLExtras.h \
+ /usr/local/opt/llvm/include/llvm/ADT/STLForwardCompat.h \
  /usr/local/opt/llvm/include/llvm/ADT/SetVector.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallPtrSet.h \
  /usr/local/opt/llvm/include/llvm/ADT/SmallString.h \
@@ -626,9 +637,11 @@ CMakeFiles/t.dir/lexer.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/Casting.h \
  /usr/local/opt/llvm/include/llvm/Support/Chrono.h \
  /usr/local/opt/llvm/include/llvm/Support/CodeGen.h \
+ /usr/local/opt/llvm/include/llvm/Support/CommandLine.h \
  /usr/local/opt/llvm/include/llvm/Support/Compiler.h \
  /usr/local/opt/llvm/include/llvm/Support/DataTypes.h \
  /usr/local/opt/llvm/include/llvm/Support/Debug.h \
+ /usr/local/opt/llvm/include/llvm/Support/Discriminator.h \
  /usr/local/opt/llvm/include/llvm/Support/DynamicLibrary.h \
  /usr/local/opt/llvm/include/llvm/Support/Endian.h \
  /usr/local/opt/llvm/include/llvm/Support/Error.h \
@@ -643,6 +656,7 @@ CMakeFiles/t.dir/lexer.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/GenericDomTree.h \
  /usr/local/opt/llvm/include/llvm/Support/MD5.h \
  /usr/local/opt/llvm/include/llvm/Support/MSVCErrorWorkarounds.h \
+ /usr/local/opt/llvm/include/llvm/Support/ManagedStatic.h \
  /usr/local/opt/llvm/include/llvm/Support/MathExtras.h \
  /usr/local/opt/llvm/include/llvm/Support/MemAlloc.h \
  /usr/local/opt/llvm/include/llvm/Support/Memory.h \
@@ -660,6 +674,7 @@ CMakeFiles/t.dir/lexer.cpp.o: \
  /usr/local/opt/llvm/include/llvm/Support/ThreadPool.h \
  /usr/local/opt/llvm/include/llvm/Support/Threading.h \
  /usr/local/opt/llvm/include/llvm/Support/TimeProfiler.h \
+ /usr/local/opt/llvm/include/llvm/Support/TrailingObjects.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeName.h \
  /usr/local/opt/llvm/include/llvm/Support/TypeSize.h \
  /usr/local/opt/llvm/include/llvm/Support/WithColor.h \

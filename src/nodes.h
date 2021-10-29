@@ -28,8 +28,6 @@
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 
-void InitializeLLVM();
-
 class Node{
 public:
     virtual ~Node() = default;
@@ -75,13 +73,20 @@ public:
 class Function : public Node{
     std::string Name;
     std::vector<std::string> Arguments;
-    std::unique_ptr<Node> Body;
+    std::vector<std::unique_ptr<Node>> Body;
 
 public:
     Function(const std::string name,
              std::vector<std::string> arguments,
              std::unique_ptr<Node> body) :
+            Name(name), Arguments(move(arguments)) {
+        Body.push_back(std::move(body));
+    };
+    Function(const std::string name,
+             std::vector<std::string> arguments,
+             std::vector<std::unique_ptr<Node>> body) :
             Name(name), Arguments(move(arguments)), Body(move(body)) {}
+
     virtual llvm::Value *codegen();
 };
 

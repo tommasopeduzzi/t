@@ -2,5 +2,4 @@ def increaseByOne(i)
     i + 1
 
 extern sin(i)
-1+3
-increaseByOne(2)
+increaseByOne(19)

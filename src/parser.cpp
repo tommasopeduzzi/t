@@ -7,27 +7,6 @@
 #include "error.h"
 int CurrentToken;
 
-std::vector<std::unique_ptr<Node>> ParseProgram(){
-    std::vector<std::unique_ptr<Node>> Nodes = {};
-    getNextToken(); // get the first token
-    while(true){
-        switch(CurrentToken){
-            case eof:
-                return Nodes;
-            case def:
-                Nodes.push_back(ParseFunction());
-                break;
-            case ext:
-                Nodes.push_back(ParseExtern());
-                break;
-            default:
-                Nodes.push_back(ParseTopLevelExpression());
-                break;
-        }
-    }
-    return Nodes;
-}
-
 int getNextToken(){
     return CurrentToken = getToken();
 }
