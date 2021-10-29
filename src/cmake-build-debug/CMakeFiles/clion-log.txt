@@ -1,6 +1,0 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" /Users/tommaso.peduzzi/Documents/Programmieren/t/src
--- Found LLVM 13.0.0
--- Using LLVMConfig.cmake in: /usr/local/opt/llvm/lib/cmake/llvm
--- Configuring done
--- Generating done
--- Build files have been written to: /Users/tommaso.peduzzi/Documents/Programmieren/t/src/cmake-build-debug
