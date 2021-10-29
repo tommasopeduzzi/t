@@ -31,6 +31,10 @@ int getToken(){
             return def;
         else if (Identifier == "extern")
             return ext;
+        else if (Identifier == "return")
+            return ret;
+        else if (Identifier == "end")
+            return end;
         else
             return identifier;
     }

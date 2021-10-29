@@ -8,11 +8,13 @@
 #define T_LEXER_H
 
 enum Tokens{
-    eof = 0,
-    def = 1,
-    ext = 2,
-    identifier = 3,
-    number = 4,
+    eof = -1,
+    def = -2,
+    ext = -3,
+    identifier = -4,
+    number = -5,
+    ret = -6,
+    end = -7,
 };
 
 int getToken();

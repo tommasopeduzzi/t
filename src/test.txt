@@ -1,5 +1,9 @@
 def increaseByOne(i)
     i + 1
+    1 + 2
+    return 1 + 1
+end
 
 extern sin(i)
 increaseByOne(19)
+return increaseByOne(18)

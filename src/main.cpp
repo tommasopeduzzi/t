@@ -44,7 +44,7 @@ void RunEntry(){
                                                     std::move(TopLevelExpressions));
     if(auto entry = entryFunction->codegen()){
         auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-
+        entry->print(llvm::errs());
         if (!JIT)
             return;
 
@@ -85,6 +85,7 @@ void HandleExternDeclaration() {
         getNextToken();
     }
 }
+
 void HandleExpression() {
     if(auto Expression = ParseExpression()){
         TopLevelExpressions.push_back(std::move(Expression));

@@ -6,16 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.cpp
-nodes.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
-error.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
-map
--
-
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.h
-
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
 string
 -
@@ -27,18 +17,6 @@ iostream
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
 string
 -
-
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/main.cpp
-memory
--
-parser.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.h
-nodes.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
-lexer.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
-codegen.h
-/Users/tommaso.peduzzi/Documents/Programmieren/t/src/codegen.h
 
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/nodes.h
 memory
@@ -85,6 +63,16 @@ llvm/ExecutionEngine/Orc/LLJIT.h
 -
 llvm/ExecutionEngine/Orc/ThreadSafeModule.h
 -
+
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.cpp
+memory
+-
+lexer.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/lexer.h
+parser.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.h
+error.h
+/Users/tommaso.peduzzi/Documents/Programmieren/t/src/error.h
 
 /Users/tommaso.peduzzi/Documents/Programmieren/t/src/parser.h
 map

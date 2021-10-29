@@ -115,12 +115,17 @@ llvm::Value *Function::codegen() {
         Variables[std::string(Arg.getName())] = &Arg;
     }
 
-    //TODO: be able to have multiple statements in the body
-    if(llvm::Value *ReturnValue = Body[0]->codegen()){
-        Builder->CreateRet(ReturnValue);
-        return Function;
+    for(int i = 0; i < Body.size(); i++){
+        auto value = Body[i]->codegen();
+
+        if(!value){
+            Function->eraseFromParent();    // error occurred delete the function
+            return Function;
+        }
+
+        if(Body[i]->returnValue || Body.size() == 1)
+            Builder->CreateRet(value);
     }
-    Function->eraseFromParent();    // error occurred delete the fucker
     return Function;
 }
 

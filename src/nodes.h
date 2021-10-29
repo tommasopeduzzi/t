@@ -32,6 +32,7 @@ class Node{
 public:
     virtual ~Node() = default;
     virtual llvm::Value *codegen() = 0;
+    bool returnValue = false;
 };
 
 class Number : public Node{

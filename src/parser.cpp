@@ -11,15 +11,6 @@ int getNextToken(){
     return CurrentToken = getToken();
 }
 
-std::unique_ptr<Node> ParseTopLevelExpression(){
-    if(auto Expression = ParseExpression()){
-        return std::make_unique<Function>("__anon_expr",
-                                          std::vector<std::string>(),
-                                          std::move(Expression));
-    }
-    return nullptr;
-}
-
 std::unique_ptr<Node> ParseExpression() {
     auto LHS = ParsePrimaryExpression();
 
@@ -27,7 +18,12 @@ std::unique_ptr<Node> ParseExpression() {
         return nullptr;
     }
 
-    return ParseBinaryOperatorRHS(0, std::move(LHS));
+    // I have to save if it's a return statement, because if not it gets lost...
+    // There has to be a better way to do this
+    bool returnValue = LHS->returnValue;
+    auto BinaryExpression =  ParseBinaryOperatorRHS(0, std::move(LHS));
+    BinaryExpression->returnValue = returnValue;
+    return BinaryExpression;
 }
 
 std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
@@ -68,16 +64,26 @@ std::unique_ptr<Node> ParseFunction() {
 
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
-        LogErrorLineNo("expected Parenthese");
+        LogErrorLineNo("expected Parentheses");
         return nullptr;
     }
     getNextToken();     // eat '('
     auto Arguments = ParseArgumentDefinition();
 
-    if(auto Body = ParseExpression()){
-        return std::make_unique<Function>(Name, std::move(Arguments), std::move(Body));
+    std::vector<std::unique_ptr<Node>> Expressions;
+
+    while (CurrentToken != end){
+        auto Expression = ParseExpression();
+
+        if(!Expression)     // error parsing expression, return
+            return nullptr;
+
+        Expressions.push_back(std::move(Expression));
     }
-    return nullptr;
+    getNextToken();     //eat "end"
+    return std::make_unique<Function>(Name,
+                                      Arguments,
+                                      std::move(Expressions));
 }
 
 std::unique_ptr<Node> ParseExtern(){
@@ -90,7 +96,7 @@ std::unique_ptr<Node> ParseExtern(){
     std::string Name = Identifier;
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
-        LogErrorLineNo("expected Parenthese");
+        LogErrorLineNo("expected Parentheses");
         return nullptr;
     }
     getNextToken(); // eats '('
@@ -106,6 +112,8 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
             return ParseNumber();
         case '(':
             return ParseParentheses();
+        case ret:
+            return ParseReturnValue();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
@@ -149,6 +157,13 @@ std::unique_ptr<Node> ParseIdentifier(){
     std::vector<std::unique_ptr<Node>> Arguments = ParseArguments();
 
     return std::make_unique<Call>(Name, std::move(Arguments));
+}
+
+std::unique_ptr<Node> ParseReturnValue(){
+    getNextToken();     // eat "return"
+    auto Node = ParsePrimaryExpression();
+    Node->returnValue = true;
+    return Node;
 }
 
 std::vector<std::unique_ptr<Node>> ParseArguments() {
