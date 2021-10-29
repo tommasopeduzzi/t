@@ -1,3 +1,3 @@
 t
 .vscode
-t.dSYM
+/src/cmake-build-debug/
