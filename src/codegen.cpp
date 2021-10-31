@@ -9,7 +9,7 @@ std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
 static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
-static std::map<std::string, llvm::Value *> Variables;
+static std::map<std::string, llvm::AllocaInst *> Variables;
 
 void InitializeModule(){
     // Open a new module.
@@ -32,6 +32,14 @@ void InitializeLLVM() {
 
 }
 
+llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
+                               const std::string &Name){
+    llvm::IRBuilder<> TempBuilder(&Function->getEntryBlock(),
+                                  Function->getEntryBlock().begin());
+    return TempBuilder.CreateAlloca(llvm::Type::getDoubleTy(*Context),0,
+                                 Name.c_str());
+}
+
 llvm::Value *Number::codegen() {
     return llvm::ConstantFP::get(*Context, llvm::APFloat(Value));
 }
@@ -40,7 +48,7 @@ llvm::Value *Variable::codegen(){
     llvm::Value *value = Variables[Name];
     if(!value)
         return LogError("Unknown Variable");
-    return value;
+    return Builder->CreateLoad(value);
 }
 
 llvm::Value *BinaryExpression::codegen(){
@@ -112,7 +120,9 @@ llvm::Value *Function::codegen() {
 
     Variables.clear();
     for(auto &Arg : Function->args()){
-        Variables[std::string(Arg.getName())] = &Arg;
+        llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getName().str());
+        Builder->CreateStore(&Arg, Alloca);
+        Variables[std::string(Arg.getName())] = Alloca;
     }
 
     for(int i = 0; i < Body.size(); i++){
