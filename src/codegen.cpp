@@ -52,6 +52,23 @@ llvm::Value *Variable::codegen(){
 }
 
 llvm::Value *BinaryExpression::codegen(){
+    if(Op == '='){
+        auto L = static_cast<Variable *>(LHS.get());
+        if(!L)
+            return LogError("Expected variable.");
+
+        auto Value = RHS->codegen();
+        if(!Value)
+            return nullptr;
+
+        auto Variable = Variables[L->Name];
+        if(!Variable)
+            return LogError("Unknown Variable");
+
+        Builder->CreateStore(Value, Variable);
+        return Value;
+    }
+
     auto L = LHS->codegen();
     auto R = RHS->codegen();
 

@@ -43,10 +43,10 @@ public:
 };
 
 class Variable : public Node{
-    std::string Name;
 
 public:
     Variable(const std::string name) : Name(name){}
+    std::string Name;
     virtual llvm::Value *codegen();
 };
 

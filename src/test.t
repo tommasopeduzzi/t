@@ -1,4 +1,5 @@
 def increaseByOne(i)
+    i = 1
     return i + 1
 end
 

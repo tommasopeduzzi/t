@@ -9,12 +9,13 @@
 #include "nodes.h"
 
 static std::map<char, int> OperatorPrecedence{
-        {'<',1},
-        {'>', 1},
-        {'+', 2},
-        {'-', 2},
-        {'/', 3},
-        {'*', 3},
+        {'=',1},
+        {'<',10},
+        {'>', 10},
+        {'+', 20},
+        {'-', 20},
+        {'/', 30},
+        {'*', 30},
 };
 extern int CurrentToken;
 int getNextToken();
