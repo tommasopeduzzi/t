@@ -21,6 +21,7 @@ extern int CurrentToken;
 int getNextToken();
 std::unique_ptr<Node> ParseExpression();
 std::unique_ptr<Node> ParsePrimaryExpression();
+std::unique_ptr<Node> ParseIfStatement();
 std::unique_ptr<Node> ParseVariableDeclaration();
 std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS);
 std::unique_ptr<Node> ParseFunction();

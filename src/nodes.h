@@ -69,6 +69,15 @@ public:
     virtual llvm::Value *codegen();
 };
 
+class IfExpression : public Node {
+    std::unique_ptr<Node> Condition;
+    std::vector<std::unique_ptr<Node>> Then, Else;
+public:
+    IfExpression(std::unique_ptr<Node> Cond, std::vector<std::unique_ptr<Node>> Then, std::vector<std::unique_ptr<Node>> Else) :
+        Condition(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {};
+    virtual llvm::Value *codegen();
+};
+
 class Call : public Node{
     std::string Callee;
     std::vector<std::unique_ptr<Node>> Arguments;

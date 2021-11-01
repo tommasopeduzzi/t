@@ -114,6 +114,47 @@ llvm::Value *BinaryExpression::codegen(){
     }
 }
 
+llvm::Value *IfExpression::codegen() {
+    auto ConditionValue = Condition->codegen();
+    if(!ConditionValue)
+        return nullptr;
+
+    ConditionValue = Builder->CreateFCmpONE(ConditionValue,
+                                         llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+
+    auto Function = Builder->GetInsertBlock()->getParent();
+
+    auto ThenBlock = llvm::BasicBlock::Create(*Context, "then", Function);
+    auto ElseBlock = llvm::BasicBlock::Create(*Context, "else");
+    auto After = llvm::BasicBlock::Create(*Context, "continue");
+
+    auto conditionInstruction = Builder->CreateCondBr(ConditionValue, ThenBlock, ElseBlock);
+
+    Builder->SetInsertPoint(ThenBlock);
+    for(auto &Expression : Then){
+        auto ExpressionIR = Expression->codegen();
+
+        if(!ExpressionIR)
+            return nullptr;
+    }
+    Builder->CreateBr(After);
+
+    Function->getBasicBlockList().push_back(ElseBlock);
+    Builder->SetInsertPoint(ElseBlock);
+    for(auto &Expression : Else){
+        auto ExpressionIR = Expression->codegen();
+
+        if(!ExpressionIR)
+            return nullptr;
+    }
+    Builder->CreateBr(After);
+
+    Function->getBasicBlockList().push_back(After);
+    Builder->SetInsertPoint(After);
+
+    return conditionInstruction;
+}
+
 llvm::Value *Call::codegen() {
     llvm::Function *function = Module->getFunction(Callee);
     if(!function)

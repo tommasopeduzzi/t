@@ -16,15 +16,18 @@ enum Tokens{
     ret = -6,
     end = -7,
     var = -8,
+    if_tok = -9,
+    else_tok = -10,
+    then_tok = -11,
 };
 
 int getToken();
 
 static bool isWhiteSpace(char c);
 
-static bool isAlpha(char Char);
+static bool isAlpha(char c);
 
-static bool isAlphaNum(char Char);
+static bool isAlphaNum(char c);
 
 static bool isDigit(char c);
 

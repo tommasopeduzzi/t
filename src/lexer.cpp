@@ -37,6 +37,12 @@ int getToken(){
             return end;
         else if (Identifier == "var")
             return var;
+        else if (Identifier == "if")
+            return if_tok;
+        else if (Identifier == "else")
+            return else_tok;
+        else if (Identifier == "then")
+            return then_tok;
         else
             return identifier;
     }

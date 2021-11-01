@@ -7,7 +7,6 @@
 #include "error.h"
 int CurrentToken;
 
-
 int getNextToken(){
     return CurrentToken = getToken();
 }
@@ -51,6 +50,26 @@ std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::uniq
         }
         // Merge left and right
         LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS));
+    }
+}
+
+std::unique_ptr<Node> ParsePrimaryExpression(){
+    switch(CurrentToken){
+        case identifier:
+            return ParseIdentifier();
+        case number:
+            return ParseNumber();
+        case '(':
+            return ParseParentheses();
+        case ret:
+            return ParseReturnValue();
+        case var:
+            return ParseVariableDeclaration();
+        case if_tok:
+            return ParseIfStatement();
+        default:
+            LogErrorLineNo("Unexpected Token");
+            return nullptr;
     }
 }
 
@@ -105,22 +124,40 @@ std::unique_ptr<Node> ParseExtern(){
     return std::make_unique<Extern>(Name, Arguments);
 }
 
-std::unique_ptr<Node> ParsePrimaryExpression(){
-    switch(CurrentToken){
-        case identifier:
-            return ParseIdentifier();
-        case number:
-            return ParseNumber();
-        case '(':
-            return ParseParentheses();
-        case ret:
-            return ParseReturnValue();
-        case var:
-            return ParseVariableDeclaration();
-        default:
-            LogErrorLineNo("Unexpected Token");
-            return nullptr;
+std::unique_ptr<Node> ParseIfStatement() {
+    getNextToken();     // eat 'if'
+
+    auto Condition = ParseExpression();
+    if(!Condition)
+        return nullptr;
+
+    if(CurrentToken != then_tok){
+        LogErrorLineNo("Expected 'then' after if condition. ");
+        return nullptr;
     }
+    getNextToken();     // eat 'then'
+    std::vector<std::unique_ptr<Node>> Then, Else;
+    while(CurrentToken != end && CurrentToken != else_tok){
+        auto Expression = ParseExpression();
+
+        if(!Expression)
+            return nullptr;
+
+        Then.push_back(std::move(Expression));
+    }
+    if(CurrentToken == else_tok){
+        getNextToken();     //eat 'else'
+        while(CurrentToken != end){
+            auto Expression = ParseExpression();
+
+            if(!Expression)
+                return nullptr;
+
+            Else.push_back(std::move(Expression));
+        }
+    }
+    getNextToken(); //eat 'end'
+    return std::make_unique<IfExpression>(std::move(Condition), std::move(Then), std::move(Else));
 }
 
 std::unique_ptr<Node> ParseVariableDeclaration() {
