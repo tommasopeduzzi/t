@@ -51,6 +51,24 @@ llvm::Value *Variable::codegen(){
     return Builder->CreateLoad(value);
 }
 
+llvm::Value *VariableDefinition::codegen(){
+    auto Function = Builder->GetInsertBlock()->getParent();
+
+    llvm::Value *initialValue;
+    if(Value){
+        initialValue = Value->codegen();
+        if(!initialValue)
+            return nullptr;
+    }
+    else{
+        initialValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+    }
+
+    auto Alloca = CreateAlloca(Function, Name);
+    Variables[Name] = Alloca;
+    return Builder->CreateStore(initialValue, Alloca);
+}
+
 llvm::Value *BinaryExpression::codegen(){
     if(Op == '='){
         auto L = static_cast<Variable *>(LHS.get());

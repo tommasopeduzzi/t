@@ -7,7 +7,8 @@ This project is mostly based on the official llvm tutorial with some modificatio
 TODO:
 - [x] Functions
 - [x] Calls
-- [ ] Mutable Variables
+- [x] Mutable Variables
+- [ ] Scopes
 - [ ] Control flow:
   - [ ] If-Else-Statements
   - [ ] For-Loops

@@ -43,10 +43,18 @@ public:
 };
 
 class Variable : public Node{
-
 public:
     Variable(const std::string name) : Name(name){}
     std::string Name;
+    virtual llvm::Value *codegen();
+};
+
+class VariableDefinition : public Node {
+    std::string Name;
+    std::unique_ptr<Node> Value;
+public:
+    VariableDefinition(std::string name, std::unique_ptr<Node> Init) :
+        Name(name), Value(std::move(Init)) {}
     virtual llvm::Value *codegen();
 };
 

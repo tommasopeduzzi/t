@@ -35,6 +35,8 @@ int getToken(){
             return ret;
         else if (Identifier == "end")
             return end;
+        else if (Identifier == "var")
+            return var;
         else
             return identifier;
     }

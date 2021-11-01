@@ -7,6 +7,7 @@
 #include "error.h"
 int CurrentToken;
 
+
 int getNextToken(){
     return CurrentToken = getToken();
 }
@@ -114,10 +115,37 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
             return ParseParentheses();
         case ret:
             return ParseReturnValue();
+        case var:
+            return ParseVariableDeclaration();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
     }
+}
+
+std::unique_ptr<Node> ParseVariableDeclaration() {
+    getNextToken(); //eat "var"
+
+    if(CurrentToken != identifier){
+        LogErrorLineNo("Expected identifier after 'var'!");
+        return nullptr;
+    }
+
+    auto Name = Identifier;
+    getNextToken();     // eat identifier
+
+    if(CurrentToken != '='){
+        LogErrorLineNo("Expected '=' after identifer. ");
+        return nullptr;
+    }
+
+    getNextToken();     // eat '='
+    auto Init = ParsePrimaryExpression();
+
+    if(!Init)
+        return nullptr;     //error already logged
+
+    return std::make_unique<VariableDefinition>(Name, std::move(Init));
 }
 
 std::unique_ptr<Number> ParseNumber(){

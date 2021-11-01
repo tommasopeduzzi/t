@@ -1,8 +1,9 @@
 def increaseByOne(i)
-    i = 1
-    return i + 1
+    var xe = 1
+    return xe
 end
 
+var i = 1
 extern sin(i)
 increaseByOne(19)
 return increaseByOne(18)

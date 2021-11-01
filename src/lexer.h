@@ -15,6 +15,7 @@ enum Tokens{
     number = -5,
     ret = -6,
     end = -7,
+    var = -8,
 };
 
 int getToken();
