@@ -114,6 +114,13 @@ llvm::Value *BinaryExpression::codegen(){
     }
 }
 
+llvm::Value *Return::codegen() {
+    auto ExpressionValue = Expression->codegen();
+    if(!ExpressionValue)
+        return nullptr;
+    return Builder->CreateRet(ExpressionValue);
+}
+
 llvm::Value *IfExpression::codegen() {
     auto ConditionValue = Condition->codegen();
     if(!ConditionValue)
@@ -147,6 +154,7 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
+
     Builder->CreateBr(After);
 
     Function->getBasicBlockList().push_back(After);
@@ -208,9 +216,6 @@ llvm::Value *Function::codegen() {
             Function->eraseFromParent();    // error occurred delete the function
             return Function;
         }
-
-        if(Body[i]->returnValue || Body.size() == 1)
-            Builder->CreateRet(value);
     }
     return Function;
 }

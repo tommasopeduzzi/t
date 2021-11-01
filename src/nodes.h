@@ -32,7 +32,6 @@ class Node{
 public:
     virtual ~Node() = default;
     virtual llvm::Value *codegen() = 0;
-    bool returnValue = false;
 };
 
 class Number : public Node{
@@ -75,6 +74,14 @@ class IfExpression : public Node {
 public:
     IfExpression(std::unique_ptr<Node> Cond, std::vector<std::unique_ptr<Node>> Then, std::vector<std::unique_ptr<Node>> Else) :
         Condition(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {};
+    virtual llvm::Value *codegen();
+};
+
+class Return : public Node {
+    std::unique_ptr<Node> Expression;
+public:
+    Return(std::unique_ptr<Node> Expression) :
+    Expression(std::move(Expression)) {};
     virtual llvm::Value *codegen();
 };
 

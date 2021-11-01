@@ -1,11 +1,10 @@
 def increaseByOne(i)
-    var x = 0
     if i > 3 then
-        x = 1
+        return 1
     else
-        x = 2
+        return 2
     end
-    return x
+    return 1
 end
 
 var i = 1

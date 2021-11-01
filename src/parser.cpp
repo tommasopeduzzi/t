@@ -18,12 +18,8 @@ std::unique_ptr<Node> ParseExpression() {
         return nullptr;
     }
 
-    // I have to save if it's a return statement, because if not it gets lost...
-    // There has to be a better way to do this
-    bool returnValue = LHS->returnValue;
-    auto BinaryExpression =  ParseBinaryOperatorRHS(0, std::move(LHS));
-    BinaryExpression->returnValue = returnValue;
-    return BinaryExpression;
+
+    return ParseBinaryOperatorRHS(0, std::move(LHS));
 }
 
 std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
@@ -225,10 +221,12 @@ std::unique_ptr<Node> ParseIdentifier(){
 }
 
 std::unique_ptr<Node> ParseReturnValue(){
-    getNextToken();     // eat "return"
-    auto Node = ParsePrimaryExpression();
-    Node->returnValue = true;
-    return Node;
+    getNextToken();     // eat 'return'
+    auto Expression = ParseExpression();
+    if(!Expression)
+        return nullptr;
+
+    return std::make_unique<Return>(std::move(Expression));
 }
 
 std::vector<std::unique_ptr<Node>> ParseArguments() {
