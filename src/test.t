@@ -1,13 +1,9 @@
-def increaseByOne(i)
-    if i > 3 then
-        return 1
+def fib(i)
+    var x = 0
+    if i < 2 then
+        return i
     else
-        return 2
+        return fib(i-1) + fib(i-2)
     end
-    return 1
 end
-
-var i = 1
-extern sin(i)
-increaseByOne(19)
-return increaseByOne(1)
+return fib(14)

@@ -4,10 +4,12 @@
 
 #include "nodes.h"
 #include "error.h"
+#include "llvm/IR/Verifier.h"
 #include <map>
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
+static llvm::AnalysisManager<llvm::Function> MAM;
 static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
 static std::map<std::string, llvm::AllocaInst *> Variables;
 
@@ -29,7 +31,7 @@ void InitializeLLVM() {
      out where tf to get the passes from, don't want to write my own.
      Also figure out if I really want to actually use the new PassManager,
      as I read that I can't use Platform-dependant backend.*/
-
+    FunctionOptimizer->addPass(llvm::VerifierPass());
 }
 
 llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
@@ -144,7 +146,8 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-    Builder->CreateBr(After);
+    if(!ThenBlock->getTerminator())
+        Builder->CreateBr(After);
 
     Function->getBasicBlockList().push_back(ElseBlock);
     Builder->SetInsertPoint(ElseBlock);
@@ -154,8 +157,8 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-
-    Builder->CreateBr(After);
+    if(!ElseBlock->getTerminator())
+        Builder->CreateBr(After);
 
     Function->getBasicBlockList().push_back(After);
     Builder->SetInsertPoint(After);
@@ -217,6 +220,7 @@ llvm::Value *Function::codegen() {
             return Function;
         }
     }
+
     return Function;
 }
 
