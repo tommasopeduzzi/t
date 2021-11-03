@@ -4,6 +4,10 @@
 #include "lexer.h"
 #include "codegen.h"
 #include <iostream>
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Transforms/Scalar/SimplifyCFG.h"
+#include "passes.h"
 
 void HandleExpression();
 
@@ -14,6 +18,7 @@ void HandleFunctionDefinition();
 void RunEntry();
 
 llvm::ExitOnError ExitOnErr;
+llvm::BasicBlock* entryBlock;
 std::vector<std::unique_ptr<Node>> TopLevelExpressions;
 
 int main() {
@@ -49,11 +54,31 @@ void RunEntry(){
         if (!JIT)
             return;
 
+        llvm::LoopAnalysisManager LAM;
+        llvm::FunctionAnalysisManager FAM;
+        llvm::CGSCCAnalysisManager CGAM;
+        llvm::ModuleAnalysisManager MAM;
+
+
+        llvm::PassBuilder PB;
+
+        // FAM.registerPass([&] { return PB.buildDefaultAAPipeline(); });
+
+        PB.registerModuleAnalyses(MAM);
+        PB.registerCGSCCAnalyses(CGAM);
+        PB.registerFunctionAnalyses(FAM);
+        PB.registerLoopAnalyses(LAM);
+        PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+        llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(llvm::PassBuilder::OptimizationLevel::O2);
+        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
+        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
+        MPM.run(*Module, MAM);
+
         if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run
             std::cerr << "Can't run llvm Module, is faulty! \n";
             return;
         }
-
         if (auto Err = JIT.get()->addIRModule(
                 llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
             return;

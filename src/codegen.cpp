@@ -137,7 +137,8 @@ llvm::Value *IfExpression::codegen() {
     auto ElseBlock = llvm::BasicBlock::Create(*Context, "else");
     auto After = llvm::BasicBlock::Create(*Context, "continue");
 
-    auto conditionInstruction = Builder->CreateCondBr(ConditionValue, ThenBlock, ElseBlock);
+    llvm::BranchInst* conditionInstruction;
+    conditionInstruction = Builder->CreateCondBr(ConditionValue, ThenBlock, ElseBlock);
 
     Builder->SetInsertPoint(ThenBlock);
     for(auto &Expression : Then){
