@@ -173,7 +173,7 @@ std::unique_ptr<Node> ParseVariableDeclaration() {
     }
 
     getNextToken();     // eat '='
-    auto Init = ParsePrimaryExpression();
+    auto Init = ParseExpression();
 
     if(!Init)
         return nullptr;     //error already logged
