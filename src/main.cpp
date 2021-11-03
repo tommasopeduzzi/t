@@ -1,9 +1,10 @@
 #include <memory>
-#include <tcl.h>
 #include "parser.h"
 #include "nodes.h"
 #include "lexer.h"
 #include "codegen.h"
+#include <iostream>
+
 void HandleExpression();
 
 void HandleExternDeclaration();
@@ -48,10 +49,14 @@ void RunEntry(){
         if (!JIT)
             return;
 
+        if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run
+            std::cerr << "Can't run llvm Module, is faulty! \n";
+            return;
+        }
+
         if (auto Err = JIT.get()->addIRModule(
                 llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
             return;
-
         auto EntrySym = JIT->lookup("entry");
         if (!EntrySym)
             return;
