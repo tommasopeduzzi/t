@@ -19,6 +19,7 @@ enum Tokens{
     if_tok = -9,
     else_tok = -10,
     then_tok = -11,
+    for_tok = -12,
 };
 
 int getToken();

@@ -77,6 +77,18 @@ public:
     virtual llvm::Value *codegen();
 };
 
+class ForLoop : public Node {
+    std::string VariableName;
+    std::unique_ptr<Node> Start, Condition, Step;
+    std::vector<std::unique_ptr<Node>> Body;
+public:
+    ForLoop(std::string VariableName, std::unique_ptr<Node> Start, std::unique_ptr<Node>Condition,
+            std::unique_ptr<Node> Step, std::vector<std::unique_ptr<Node>> Body) : VariableName(VariableName),
+                                                                                   Start(std::move(Start)), Condition(std::move(Condition)), Step(std::move(Step)),
+                                                                                   Body(std::move(Body)) {};
+    virtual llvm::Value *codegen();
+};
+
 class Return : public Node {
     std::unique_ptr<Node> Expression;
 public:

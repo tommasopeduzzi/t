@@ -1,10 +1,9 @@
-def fib(i)
-    var x = 10*i
-    return x
-    if x < 100 then
-        return x
+def fib(n)
+    var result = 1
+    for i = 0 , i < n, i + 1 then
+        result = result + i
     end
-    return x
+    return result
 end
 var test = 2
 test = 3

@@ -63,6 +63,8 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
             return ParseVariableDeclaration();
         case if_tok:
             return ParseIfStatement();
+        case for_tok:
+            return ParseForLoop();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
@@ -154,6 +156,57 @@ std::unique_ptr<Node> ParseIfStatement() {
     }
     getNextToken(); //eat 'end'
     return std::make_unique<IfExpression>(std::move(Condition), std::move(Then), std::move(Else));
+}
+
+std::unique_ptr<Node> ParseForLoop(){
+    getNextToken(); // eat "for"
+
+    if(CurrentToken != identifier){
+        LogErrorLineNo("Expected identifier after 'for'!");
+        return nullptr;
+    }
+    std::string VariableName = Identifier;
+    getNextToken(); // eat Identifier
+    std::unique_ptr<Node> StartValue;
+    if(CurrentToken == '='){
+        getNextToken();     // eat '='
+        StartValue = ParseExpression();
+        if(!StartValue){
+            return nullptr;
+        }
+    }
+    if(CurrentToken != ','){
+        LogErrorLineNo("Expected ',' after 'for'!");
+        return nullptr;
+    }
+    getNextToken();     // eat ','
+    auto Condition = ParseExpression();
+    if(!Condition)
+        return nullptr;
+
+    std::unique_ptr<Node> Step;
+    if(CurrentToken == ','){
+        getNextToken();     // eat ','
+        Step = ParseExpression();
+        if(!Step)
+            return nullptr;
+    }
+    if(CurrentToken != then_tok){
+        LogErrorLineNo("Expected 'then' after for loop declaration!");
+        return nullptr;
+    }
+    getNextToken();     // eat 'do'
+    std::vector<std::unique_ptr<Node>> Body;
+    while (CurrentToken != end){
+        auto Expression = ParseExpression();
+
+        if(!Expression)
+            return nullptr;
+
+        Body.push_back(std::move(Expression));
+    }
+
+    return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step), std::move(Body));
 }
 
 std::unique_ptr<Node> ParseVariableDeclaration() {

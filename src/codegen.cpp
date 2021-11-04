@@ -167,6 +167,51 @@ llvm::Value *IfExpression::codegen() {
     return conditionInstruction;
 }
 
+llvm::Value *ForLoop::codegen(){
+     auto Function = Builder->GetInsertBlock()->getParent();
+     auto CurrentBlock = Builder->GetInsertBlock();
+     auto ForLoopBlock = llvm::BasicBlock::Create(*Context, "loop", Function);
+
+    Builder->CreateBr(ForLoopBlock);
+    Builder->SetInsertPoint(ForLoopBlock);
+
+    llvm::PHINode *Variable = llvm::PHINode::Create(llvm::Type::getDoubleTy(*Context), 2, VariableName);
+    auto StartValue = Start->codegen();
+    if(!StartValue)
+        return nullptr;
+
+    Variable->addIncoming(StartValue, CurrentBlock);
+    for(auto &Expression : Body){
+        auto ExpressionIR = Expression->codegen();
+        if(!ExpressionIR)
+            return nullptr;
+    }
+
+    llvm::Value *StepValue;
+    if(Step){
+        StepValue = Step->codegen();
+        if(!StepValue)
+            return nullptr;
+    }
+    else{
+        StepValue = llvm::ConstantFP::get(*Context, llvm::APFloat(1.0));
+    }
+
+    llvm::Value *EndCondition = Condition->codegen();
+    if(!EndCondition)
+        return nullptr;
+
+    EndCondition = Builder->CreateFCmpONE(
+            EndCondition, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "conditon");
+
+    auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop");
+    Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
+    Builder->SetInsertPoint(AfterBlock);
+
+    Variable->addIncoming(StepValue, ForLoopBlock);
+    return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
+}
+
 llvm::Value *Call::codegen() {
     llvm::Function *function = Module->getFunction(Callee);
     if(!function)

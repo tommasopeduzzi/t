@@ -43,6 +43,8 @@ int getToken(){
             return else_tok;
         else if (Identifier == "then")
             return then_tok;
+        else if (Identifier == "for")
+            return for_tok;
         else
             return identifier;
     }
