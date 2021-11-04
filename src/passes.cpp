@@ -7,9 +7,14 @@
 
 llvm::PreservedAnalyses llvm::RemoveAfterFirstTerminatorPass::run(Function &F,
                                       llvm::FunctionAnalysisManager &AM) {
-    for(llvm::Function::iterator b = F.begin(), end = F.end(); b != end; ++b){
-        BasicBlock &BB = *b;
-        errs() << BB.getName() << "\n";
+    for(BasicBlock &BB : F){
+        bool isTerminated = false;
+        for(Instruction &I : BB){
+            if(isTerminated)
+                I.removeFromParent();
+            else
+                isTerminated = I.isTerminator();
+        }
     }
     return PreservedAnalyses::all();
 }
