@@ -5,6 +5,8 @@
 #include "lexer.h"
 #include "parser.h"
 #include "error.h"
+#include "codegen.h"
+
 int CurrentToken;
 
 int getNextToken(){
@@ -195,7 +197,7 @@ std::unique_ptr<Node> ParseForLoop(){
         LogErrorLineNo("Expected 'then' after for loop declaration!");
         return nullptr;
     }
-    getNextToken();     // eat 'do'
+    getNextToken();     // eat 'then'
     std::vector<std::unique_ptr<Node>> Body;
     while (CurrentToken != end){
         auto Expression = ParseExpression();
@@ -205,7 +207,7 @@ std::unique_ptr<Node> ParseForLoop(){
 
         Body.push_back(std::move(Expression));
     }
-
+    getNextToken();     // eat 'end'
     return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step), std::move(Body));
 }
 

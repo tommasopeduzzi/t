@@ -11,6 +11,10 @@ class RemoveAfterFirstTerminatorPass : public PassInfoMixin<RemoveAfterFirstTerm
     public:
         PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
     };
+class RemoveEmptyBasicBlocksPass : public PassInfoMixin<RemoveEmptyBasicBlocksPass> {
+    public:
+        PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
+    };
 
 } // namespace llvm
 

@@ -84,10 +84,11 @@ void RunEntry(){
         PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
         llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(llvm::PassBuilder::OptimizationLevel::O2);
-        MPM.addPass(llvm::PrintModulePass());
+        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveEmptyBasicBlocksPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::PromotePass()));
+        MPM.addPass(llvm::PrintModulePass());
         MPM.run(*Module, MAM);
 
         if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run

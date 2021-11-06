@@ -147,8 +147,7 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-    if(!ThenBlock->getTerminator())
-        Builder->CreateBr(After);
+    Builder->CreateBr(After);
 
     Function->getBasicBlockList().push_back(ElseBlock);
     Builder->SetInsertPoint(ElseBlock);
@@ -158,8 +157,7 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-    if(!ElseBlock->getTerminator())
-        Builder->CreateBr(After);
+    Builder->CreateBr(After);
 
     Function->getBasicBlockList().push_back(After);
     Builder->SetInsertPoint(After);
@@ -168,19 +166,21 @@ llvm::Value *IfExpression::codegen() {
 }
 
 llvm::Value *ForLoop::codegen(){
-     auto Function = Builder->GetInsertBlock()->getParent();
-     auto CurrentBlock = Builder->GetInsertBlock();
-     auto ForLoopBlock = llvm::BasicBlock::Create(*Context, "loop", Function);
+    auto Function = Builder->GetInsertBlock()->getParent();
+    auto CurrentBlock = Builder->GetInsertBlock();
+    auto ForLoopBlock = llvm::BasicBlock::Create(*Context, "loop", Function);
 
-    Builder->CreateBr(ForLoopBlock);
-    Builder->SetInsertPoint(ForLoopBlock);
-
-    llvm::PHINode *Variable = llvm::PHINode::Create(llvm::Type::getDoubleTy(*Context), 2, VariableName);
     auto StartValue = Start->codegen();
     if(!StartValue)
         return nullptr;
 
-    Variable->addIncoming(StartValue, CurrentBlock);
+    auto Alloca = Builder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
+                                        StartValue);
+    Variables[VariableName] = Alloca;
+
+    Builder->CreateBr(ForLoopBlock);
+    Builder->SetInsertPoint(ForLoopBlock);
+
     for(auto &Expression : Body){
         auto ExpressionIR = Expression->codegen();
         if(!ExpressionIR)
@@ -196,6 +196,9 @@ llvm::Value *ForLoop::codegen(){
     else{
         StepValue = llvm::ConstantFP::get(*Context, llvm::APFloat(1.0));
     }
+    auto CurrentStep = Builder->CreateLoad(Alloca->getAllocatedType(), Alloca, VariableName);
+    auto NextStep = Builder->CreateFAdd(CurrentStep, StepValue, "step");
+    Builder->CreateStore(NextStep, Alloca);
 
     llvm::Value *EndCondition = Condition->codegen();
     if(!EndCondition)
@@ -208,7 +211,6 @@ llvm::Value *ForLoop::codegen(){
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
     Builder->SetInsertPoint(AfterBlock);
 
-    Variable->addIncoming(StepValue, ForLoopBlock);
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
 

@@ -51,11 +51,11 @@ int getToken(){
 
     // Handle Digits
     if(isDigit(LastChar) || LastChar == '.'){
-        bool decimal;
+        bool decimal = false;
         std::string NumberString;
 
         do{
-            if(LastChar == '.' || LastChar == ','){
+            if(LastChar == '.'){
                 if(decimal){
                     LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
                     return -1;
@@ -64,7 +64,7 @@ int getToken(){
             }
             NumberString += LastChar;
             LastChar = getchar();
-        } while(isDigit(LastChar) || LastChar == '.' || LastChar == ',');
+        } while(isDigit(LastChar) || LastChar == '.');
 
         NumberValue = strtod(NumberString.c_str(), 0);
         return number;
