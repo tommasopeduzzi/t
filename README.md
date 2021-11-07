@@ -13,10 +13,10 @@ TODO:
 - [x] Calls
 - [x] Mutable Variables
 - [ ] Scopes
-- [ ] Control flow:
+- [x] Control flow:
   - [x] If-Else-Statements
   - [x] For-Loops
-  - [ ] While-Loops
+  - [x] While-Loops
 - [ ] Importing of other files
 - [ ] Types
   - [ ] Strings
