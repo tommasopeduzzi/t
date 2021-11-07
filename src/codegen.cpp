@@ -174,9 +174,9 @@ llvm::Value *ForLoop::codegen(){
     if(!StartValue)
         return nullptr;
 
-    auto Alloca = Builder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
-                                        StartValue);
+    auto Alloca = CreateAlloca(Function, VariableName);
     Variables[VariableName] = Alloca;
+    Builder->CreateStore(StartValue, Alloca);
 
     Builder->CreateBr(ForLoopBlock);
     Builder->SetInsertPoint(ForLoopBlock);
@@ -207,7 +207,7 @@ llvm::Value *ForLoop::codegen(){
     EndCondition = Builder->CreateFCmpONE(
             EndCondition, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "conditon");
 
-    auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop");
+    auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
     Builder->SetInsertPoint(AfterBlock);
 
