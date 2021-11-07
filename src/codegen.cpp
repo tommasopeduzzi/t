@@ -162,6 +162,7 @@ llvm::Value *IfExpression::codegen() {
     conditionInstruction = Builder->CreateCondBr(ConditionValue, ThenBlock, ElseBlock);
 
     Builder->SetInsertPoint(ThenBlock);
+    CreateScope();
     for(auto &Expression : Then){
         auto ExpressionIR = Expression->codegen();
 
@@ -169,9 +170,11 @@ llvm::Value *IfExpression::codegen() {
             return nullptr;
     }
     Builder->CreateBr(After);
+    DestroyScope();
 
     Function->getBasicBlockList().push_back(ElseBlock);
     Builder->SetInsertPoint(ElseBlock);
+    CreateScope();
     for(auto &Expression : Else){
         auto ExpressionIR = Expression->codegen();
 
@@ -179,7 +182,7 @@ llvm::Value *IfExpression::codegen() {
             return nullptr;
     }
     Builder->CreateBr(After);
-
+    DestroyScope();
     Function->getBasicBlockList().push_back(After);
     Builder->SetInsertPoint(After);
 
@@ -230,8 +233,8 @@ llvm::Value *ForLoop::codegen(){
 
     auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
-    Builder->SetInsertPoint(AfterBlock);
     DestroyScope();
+    Builder->SetInsertPoint(AfterBlock);
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
 
@@ -262,8 +265,9 @@ llvm::Value *WhileLoop::codegen(){
     ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
-    Builder->SetInsertPoint(AfterBlock);
     DestroyScope();
+
+    Builder->SetInsertPoint(AfterBlock);
 
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
