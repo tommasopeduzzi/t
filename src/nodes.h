@@ -89,6 +89,15 @@ public:
     virtual llvm::Value *codegen();
 };
 
+class WhileLoop : public Node {
+    std::unique_ptr<Node> Condition;
+    std::vector<std::unique_ptr<Node>> Body;
+public:
+    WhileLoop(std::unique_ptr<Node> Condition, std::vector<std::unique_ptr<Node>> Body) : Condition(std::move(Condition)),
+                                                                                   Body(std::move(Body)) {};
+    virtual llvm::Value *codegen();
+};
+
 class Return : public Node {
     std::unique_ptr<Node> Expression;
 public:

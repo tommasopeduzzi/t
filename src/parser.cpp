@@ -67,6 +67,8 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
             return ParseIfStatement();
         case for_tok:
             return ParseForLoop();
+        case while_tok:
+            return ParseWhileLoop();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
@@ -209,6 +211,29 @@ std::unique_ptr<Node> ParseForLoop(){
     }
     getNextToken();     // eat 'end'
     return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step), std::move(Body));
+}
+
+std::unique_ptr<Node> ParseWhileLoop(){
+    getNextToken();     // eat 'while'
+
+    auto Condition = ParseExpression();
+    if(!Condition)
+        return nullptr;
+
+    if(CurrentToken != then_tok){
+        LogErrorLineNo("Expected 'then' after while declaration");
+        return nullptr;
+    }
+    getNextToken();     // eat 'then'
+    std::vector<std::unique_ptr<Node>> Body;
+    while (CurrentToken != end){
+        auto Expression = ParseExpression();
+        if(!Expression)
+            return nullptr;
+        Body.push_back(std::move(Expression));
+    }
+    getNextToken(); // eat 'end'
+    return std::make_unique<WhileLoop>(std::move(Condition), std::move(Body));
 }
 
 std::unique_ptr<Node> ParseVariableDeclaration() {

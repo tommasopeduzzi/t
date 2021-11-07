@@ -1,8 +1,8 @@
 def test(n)
     var result = 0
-    for i = 1, i < n+1, 1 then
-        result = result + i
+    while result < n then
+        result = result + 1
     end
     return result
 end
-return fib(9)
+return test(9)

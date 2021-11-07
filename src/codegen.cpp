@@ -167,7 +167,6 @@ llvm::Value *IfExpression::codegen() {
 
 llvm::Value *ForLoop::codegen(){
     auto Function = Builder->GetInsertBlock()->getParent();
-    auto CurrentBlock = Builder->GetInsertBlock();
     auto ForLoopBlock = llvm::BasicBlock::Create(*Context, "loop", Function);
 
     auto StartValue = Start->codegen();
@@ -209,6 +208,37 @@ llvm::Value *ForLoop::codegen(){
 
     auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
+    Builder->SetInsertPoint(AfterBlock);
+
+    return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
+}
+
+llvm::Value *WhileLoop::codegen(){
+    auto Function = Builder->GetInsertBlock()->getParent();
+    auto WhileLoopBlock = llvm::BasicBlock::Create(*Context, "whileloop", Function);
+    auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
+    llvm::Value *ConditionValue = Condition->codegen();
+    if(!ConditionValue)
+        return nullptr;
+
+    ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
+
+    Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
+    Builder->SetInsertPoint(WhileLoopBlock);
+
+    for(auto &Expression : Body){
+        auto ExpressionIR = Expression->codegen();
+        if(!ExpressionIR)
+            return nullptr;
+    }
+
+    ConditionValue = Condition->codegen();
+    if(!ConditionValue)
+        return nullptr;
+
+    ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
+
+    Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
     Builder->SetInsertPoint(AfterBlock);
 
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));

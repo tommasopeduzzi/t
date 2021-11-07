@@ -20,6 +20,7 @@ enum Tokens{
     else_tok = -10,
     then_tok = -11,
     for_tok = -12,
+    while_tok = -13,
 };
 
 int getToken();

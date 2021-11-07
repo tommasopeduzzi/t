@@ -45,6 +45,8 @@ int getToken(){
             return then_tok;
         else if (Identifier == "for")
             return for_tok;
+        else if (Identifier == "while")
+            return while_tok;
         else
             return identifier;
     }
