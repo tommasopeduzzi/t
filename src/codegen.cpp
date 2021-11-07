@@ -11,7 +11,7 @@ std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
 static llvm::AnalysisManager<llvm::Function> MAM;
 static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
-static std::map<std::string, llvm::AllocaInst *> Variables;
+static std::vector<std::map<std::string, llvm::AllocaInst *>> Variables;
 
 void InitializeModule(){
     // Open a new module.
@@ -42,12 +42,33 @@ llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
                                  Name.c_str());
 }
 
+void CreateScope(){
+    Variables.push_back(std::map<std::string, llvm::AllocaInst *>());
+}
+
+void DestroyScope(){
+    Variables.pop_back();
+}
+
+void CreateVariable(std::string Name, llvm::AllocaInst *Value){
+    Variables.back()[Name] = Value;
+}
+
+llvm::Value *GetVariable(std::string name){
+    for(auto &Scope : Variables){
+        if(Scope.find(name) != Scope.end()){
+            return Scope[name];
+        }
+    }
+    return nullptr;
+}
+
 llvm::Value *Number::codegen() {
     return llvm::ConstantFP::get(*Context, llvm::APFloat(Value));
 }
 
 llvm::Value *Variable::codegen(){
-    llvm::Value *value = Variables[Name];
+    llvm::Value *value = GetVariable(Name);
     if(!value)
         return LogError("Unknown Variable");
     return Builder->CreateLoad(value);
@@ -67,7 +88,7 @@ llvm::Value *VariableDefinition::codegen(){
     }
 
     auto Alloca = CreateAlloca(Function, Name);
-    Variables[Name] = Alloca;
+    CreateVariable(Name, Alloca);
     return Builder->CreateStore(initialValue, Alloca);
 }
 
@@ -81,7 +102,7 @@ llvm::Value *BinaryExpression::codegen(){
         if(!Value)
             return nullptr;
 
-        auto Variable = Variables[L->Name];
+        auto Variable = GetVariable(L->Name);
         if(!Variable)
             return LogError("Unknown Variable");
 
@@ -173,8 +194,9 @@ llvm::Value *ForLoop::codegen(){
     if(!StartValue)
         return nullptr;
 
+    CreateScope();
     auto Alloca = CreateAlloca(Function, VariableName);
-    Variables[VariableName] = Alloca;
+    CreateVariable(VariableName, Alloca);
     Builder->CreateStore(StartValue, Alloca);
 
     Builder->CreateBr(ForLoopBlock);
@@ -209,7 +231,7 @@ llvm::Value *ForLoop::codegen(){
     auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
     Builder->SetInsertPoint(AfterBlock);
-
+    DestroyScope();
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
 
@@ -225,6 +247,7 @@ llvm::Value *WhileLoop::codegen(){
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
     Builder->SetInsertPoint(WhileLoopBlock);
+    CreateScope();
 
     for(auto &Expression : Body){
         auto ExpressionIR = Expression->codegen();
@@ -240,6 +263,7 @@ llvm::Value *WhileLoop::codegen(){
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
     Builder->SetInsertPoint(AfterBlock);
+    DestroyScope();
 
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
@@ -283,11 +307,11 @@ llvm::Value *Function::codegen() {
     llvm::BasicBlock *BasicBlock = llvm::BasicBlock::Create(*Context, "entry", Function);
     Builder->SetInsertPoint(BasicBlock);
 
-    Variables.clear();
+    CreateScope();
     for(auto &Arg : Function->args()){
         llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getName().str());
         Builder->CreateStore(&Arg, Alloca);
-        Variables[std::string(Arg.getName())] = Alloca;
+        CreateVariable(Arg.getName().str(), Alloca);
     }
 
     for(int i = 0; i < Body.size(); i++){
@@ -298,7 +322,7 @@ llvm::Value *Function::codegen() {
             return Function;
         }
     }
-
+    DestroyScope();
     return Function;
 }
 

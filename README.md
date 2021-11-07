@@ -12,7 +12,7 @@ TODO:
 - [x] Functions
 - [x] Calls
 - [x] Mutable Variables
-- [ ] Scopes
+- [x] Scopes
 - [x] Control flow:
   - [x] If-Else-Statements
   - [x] For-Loops
