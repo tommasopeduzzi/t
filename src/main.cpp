@@ -10,17 +10,8 @@
 #include "passes.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 #include "llvm/ADT/Statistic.h"
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Dominators.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
 #include "llvm/IR/PassManager.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Transforms/Utils.h"
-#include "llvm/Transforms/Utils/PromoteMemToReg.h"
 #include "llvm/IR/IRPrintingPasses.h"
 void HandleExpression();
 
@@ -31,16 +22,16 @@ void HandleFunctionDefinition();
 void RunEntry();
 
 llvm::ExitOnError ExitOnErr;
-llvm::BasicBlock* entryBlock;
 std::vector<std::unique_ptr<Node>> TopLevelExpressions;
-
+std::unique_ptr<Parser> parser;
 int main() {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
-    getNextToken(); // get the first token
+    parser = std::make_unique<Parser>();
+    parser->getNextToken(); // get the first token
     while (true) {
-        switch (CurrentToken) {
+        switch (parser->CurrentToken) {
             case eof:
                 RunEntry();
                 return 0;
@@ -109,34 +100,34 @@ void RunEntry(){
 }
 
 void HandleFunctionDefinition() {
-    if(auto Function = ParseFunction()){
+    if(auto Function = parser->ParseFunction()){
         if(auto FunctionIR = Function->codegen()){
             FunctionIR->print(llvm::errs());
             fprintf(stderr, "\n");
         }
     }
     else{
-        getNextToken();
+        parser->getNextToken();
     }
 }
 
 void HandleExternDeclaration() {
-    if(auto Extern = ParseExtern()){
+    if(auto Extern = parser->ParseExtern()){
         if(auto ExternIR = Extern->codegen()){
             ExternIR->print(llvm::errs());
             fprintf(stderr, "\n");
         }
     }
     else{
-        getNextToken();
+        parser->getNextToken();
     }
 }
 
 void HandleExpression() {
-    if(auto Expression = ParseExpression()){
+    if(auto Expression = parsegr->ParseExpression()){
         TopLevelExpressions.push_back(std::move(Expression));
     }
     else{
-        getNextToken();
+        parser->getNextToken();
     }
 }

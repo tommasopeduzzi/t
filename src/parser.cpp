@@ -5,15 +5,12 @@
 #include "lexer.h"
 #include "parser.h"
 #include "error.h"
-#include "codegen.h"
 
-int CurrentToken;
-
-int getNextToken(){
+int Parser::getNextToken(){
     return CurrentToken = getToken();
 }
 
-std::unique_ptr<Node> ParseExpression() {
+std::unique_ptr<Node> Parser::ParseExpression() {
     auto LHS = ParsePrimaryExpression();
 
     if(!LHS){
@@ -24,9 +21,9 @@ std::unique_ptr<Node> ParseExpression() {
     return ParseBinaryOperatorRHS(0, std::move(LHS));
 }
 
-std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
+std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
     while(true){
-        int TokenPrecedence = getOperatorPrecedence();
+        int TokenPrecedence = getOperatorPrecedence(CurrentToken);
         if(TokenPrecedence < expressionPrecedence){
             return LHS; // It's not a binary expression, just return the left side.
         }
@@ -41,7 +38,7 @@ std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::uniq
             return nullptr;
         }
 
-        if(TokenPrecedence < getOperatorPrecedence()){
+        if(TokenPrecedence < getOperatorPrecedence(CurrentToken)){
             RHS = ParseBinaryOperatorRHS(TokenPrecedence + 1, std::move(RHS));
             if(!RHS)
                 return nullptr;
@@ -51,8 +48,8 @@ std::unique_ptr<Node> ParseBinaryOperatorRHS(int expressionPrecedence, std::uniq
     }
 }
 
-std::unique_ptr<Node> ParsePrimaryExpression(){
-    switch(CurrentToken){
+std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
+    switch(this->CurrentToken){
         case identifier:
             return ParseIdentifier();
         case number:
@@ -75,7 +72,7 @@ std::unique_ptr<Node> ParsePrimaryExpression(){
     }
 }
 
-std::unique_ptr<Node> ParseFunction() {
+std::unique_ptr<Node> Parser::ParseFunction() {
     getNextToken();     // eat 'def'
 
     if(CurrentToken != identifier){
@@ -89,8 +86,8 @@ std::unique_ptr<Node> ParseFunction() {
         LogErrorLineNo("expected Parentheses");
         return nullptr;
     }
-    getNextToken();     // eat '('
-    auto Arguments = ParseArgumentDefinition();
+    this->getNextToken();     // eat '('
+    auto Arguments = this->ParseArgumentDefinition();
 
     std::vector<std::unique_ptr<Node>> Expressions;
 
@@ -108,7 +105,7 @@ std::unique_ptr<Node> ParseFunction() {
                                       std::move(Expressions));
 }
 
-std::unique_ptr<Node> ParseExtern(){
+std::unique_ptr<Node> Parser::ParseExtern(){
     getNextToken(); // eat 'extern'
 
     if(CurrentToken != identifier){
@@ -126,7 +123,7 @@ std::unique_ptr<Node> ParseExtern(){
     return std::make_unique<Extern>(Name, Arguments);
 }
 
-std::unique_ptr<Node> ParseIfStatement() {
+std::unique_ptr<Node> Parser::ParseIfStatement() {
     getNextToken();     // eat 'if'
 
     auto Condition = ParseExpression();
@@ -162,7 +159,7 @@ std::unique_ptr<Node> ParseIfStatement() {
     return std::make_unique<IfExpression>(std::move(Condition), std::move(Then), std::move(Else));
 }
 
-std::unique_ptr<Node> ParseForLoop(){
+std::unique_ptr<Node> Parser::ParseForLoop(){
     getNextToken(); // eat "for"
 
     if(CurrentToken != identifier){
@@ -213,7 +210,7 @@ std::unique_ptr<Node> ParseForLoop(){
     return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step), std::move(Body));
 }
 
-std::unique_ptr<Node> ParseWhileLoop(){
+std::unique_ptr<Node> Parser::ParseWhileLoop(){
     getNextToken();     // eat 'while'
 
     auto Condition = ParseExpression();
@@ -236,7 +233,7 @@ std::unique_ptr<Node> ParseWhileLoop(){
     return std::make_unique<WhileLoop>(std::move(Condition), std::move(Body));
 }
 
-std::unique_ptr<Node> ParseVariableDeclaration() {
+std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     getNextToken(); //eat "var"
 
     if(CurrentToken != identifier){
@@ -261,13 +258,13 @@ std::unique_ptr<Node> ParseVariableDeclaration() {
     return std::make_unique<VariableDefinition>(Name, std::move(Init));
 }
 
-std::unique_ptr<Number> ParseNumber(){
+std::unique_ptr<Number> Parser::ParseNumber(){
     auto number = std::make_unique<Number>(NumberValue);
     getNextToken(); // eat number
     return std::move(number);
 }
 
-std::unique_ptr<Node> ParseParentheses(){
+std::unique_ptr<Node> Parser::ParseParentheses(){
     getNextToken();
     auto value = ParseExpression();
 
@@ -284,7 +281,7 @@ std::unique_ptr<Node> ParseParentheses(){
     return value;
 }
 
-std::unique_ptr<Node> ParseIdentifier(){
+std::unique_ptr<Node> Parser::ParseIdentifier(){
     std::string Name = Identifier;
 
     getNextToken(); // eat identifier
@@ -300,7 +297,7 @@ std::unique_ptr<Node> ParseIdentifier(){
     return std::make_unique<Call>(Name, std::move(Arguments));
 }
 
-std::unique_ptr<Node> ParseReturnValue(){
+std::unique_ptr<Node> Parser::ParseReturnValue(){
     getNextToken();     // eat 'return'
     auto Expression = ParseExpression();
     if(!Expression)
@@ -309,7 +306,7 @@ std::unique_ptr<Node> ParseReturnValue(){
     return std::make_unique<Return>(std::move(Expression));
 }
 
-std::vector<std::unique_ptr<Node>> ParseArguments() {
+std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
     std::vector<std::unique_ptr<Node>> Arguments;
     while(CurrentToken != ')'){
         if(auto Argument = ParseExpression()){
@@ -336,7 +333,7 @@ std::vector<std::unique_ptr<Node>> ParseArguments() {
     return Arguments;
 }
 
-std::vector<std::string> ParseArgumentDefinition() {
+std::vector<std::string> Parser::ParseArgumentDefinition() {
     std::vector<std::string> Arguments;
     while(CurrentToken == identifier){
         Arguments.push_back(std::move(Identifier));
@@ -357,7 +354,7 @@ std::vector<std::string> ParseArgumentDefinition() {
     return Arguments;
 }
 
-int getOperatorPrecedence(){
+int getOperatorPrecedence(char CurrentToken){
     if(!isascii(CurrentToken) || OperatorPrecedence[CurrentToken] <= 0)
         return -1;
     return OperatorPrecedence[CurrentToken];
