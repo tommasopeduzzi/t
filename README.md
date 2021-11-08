@@ -18,8 +18,16 @@ TODO:
   - [x] For-Loops
   - [x] While-Loops
 - [ ] Importing of other files
+- [ ] Global Variables
 - [ ] Types
+  - [ ] Numbers
   - [ ] Strings
   - [ ] Booleans
   - [ ] Lists
 - [ ] Standard Library
+  - [ ] Call into C-Functions
+  - [ ] Math
+  - [ ] String
+  - [ ] IO
+  - [ ] Random
+  - [ ] Time
