@@ -24,11 +24,13 @@ void RunEntry();
 llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> TopLevelExpressions;
 std::unique_ptr<Parser> parser;
+std::unique_ptr<Lexer> lexer;
 int main() {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
-    parser = std::make_unique<Parser>();
+    lexer = std::make_unique<Lexer>();
+    parser = std::make_unique<Parser>(std::move(lexer));
     parser->getNextToken(); // get the first token
     while (true) {
         switch (parser->CurrentToken) {
@@ -124,7 +126,7 @@ void HandleExternDeclaration() {
 }
 
 void HandleExpression() {
-    if(auto Expression = parsegr->ParseExpression()){
+    if(auto Expression = parser->ParseExpression()){
         TopLevelExpressions.push_back(std::move(Expression));
     }
     else{

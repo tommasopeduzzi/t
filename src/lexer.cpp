@@ -7,14 +7,7 @@
 #include "error.h"
 #include "lexer.h"
 
-double NumberValue;
-std::string Identifier;
-int lineNo = 0;
-char LastChar = ' ';
-
-int getToken(){
-
-
+int Lexer::getToken(){
     // Eat up Whitespace
     while(isWhiteSpace(LastChar)){
         LastChar = getchar();
@@ -93,18 +86,20 @@ int getToken(){
     return int (returnValue);
 }
 
-static bool isDigit(char c) {
+bool Lexer::isDigit(char c) {
     return std::regex_match(std::string(1, c), std::regex(digitRegex));
 }
 
-static bool isAlphaNum(char c) {
+bool Lexer::isAlphaNum(char c) {
     return std::regex_match(std::string(1, c), std::regex(alphaNumRegex));
 }
 
-static bool isAlpha(char c) {
+bool Lexer::isAlpha(char c) {
     return std::regex_match(std::string(1, c), std::regex(alphaRegex));
 }
 
-static bool isWhiteSpace(char c) {
+bool Lexer::isWhiteSpace(char c) {
+    if(c == '\n')
+        lineNo++;
     return std::regex_match(std::string(1, c), std::regex(whitespaceRegex));
 }

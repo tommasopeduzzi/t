@@ -23,23 +23,24 @@ enum Tokens{
     while_tok = -13,
 };
 
-int getToken();
 
-static bool isWhiteSpace(char c);
 
-static bool isAlpha(char c);
+class Lexer {
+public:
+    double NumberValue;
+    std::string Identifier;
+    char LastChar;
+    int lineNo;
+    int getToken();
+    bool isWhiteSpace(char c);
+    bool isAlpha(char c);
+    bool isAlphaNum(char c);
+    bool isDigit(char c);
+};
 
-static bool isAlphaNum(char c);
-
-static bool isDigit(char c);
-
-extern double NumberValue;
-extern std::string Identifier;
-extern int lineNo;
-extern char LastChar;
-static std::string digitRegex = "[0-9]";
-static std::string alphaNumRegex = "[a-zA-Z0-9]";
-static std::string alphaRegex = "[a-zA-Z]";
-static std::string whitespaceRegex = "\\s";
+const std::string digitRegex = "[0-9]";
+const std::string alphaNumRegex = "[a-zA-Z0-9]";
+const std::string alphaRegex = "[a-zA-Z]";
+const std::string whitespaceRegex = "\\s";
 
 #endif //T_LEXER_H

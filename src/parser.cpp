@@ -7,7 +7,7 @@
 #include "error.h"
 
 int Parser::getNextToken(){
-    return CurrentToken = getToken();
+    return CurrentToken = lexer->getToken();
 }
 
 std::unique_ptr<Node> Parser::ParseExpression() {
@@ -79,7 +79,7 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         LogErrorLineNo("Expected Identifier");
         return nullptr;
     }
-    std::string Name = Identifier;
+    std::string Name = lexer->Identifier;
 
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
@@ -112,7 +112,7 @@ std::unique_ptr<Node> Parser::ParseExtern(){
         LogErrorLineNo("Expected Identifier");
         return nullptr;
     }
-    std::string Name = Identifier;
+    std::string Name = lexer->Identifier;
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
         LogErrorLineNo("expected Parentheses");
@@ -166,7 +166,7 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
         LogErrorLineNo("Expected identifier after 'for'!");
         return nullptr;
     }
-    std::string VariableName = Identifier;
+    std::string VariableName = lexer->Identifier;
     getNextToken(); // eat Identifier
     std::unique_ptr<Node> StartValue;
     if(CurrentToken == '='){
@@ -241,7 +241,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
         return nullptr;
     }
 
-    auto Name = Identifier;
+    auto Name = lexer->Identifier;
     getNextToken();     // eat identifier
 
     if(CurrentToken != '='){
@@ -259,7 +259,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
 }
 
 std::unique_ptr<Number> Parser::ParseNumber(){
-    auto number = std::make_unique<Number>(NumberValue);
+    auto number = std::make_unique<Number>(lexer->NumberValue);
     getNextToken(); // eat number
     return std::move(number);
 }
@@ -282,7 +282,7 @@ std::unique_ptr<Node> Parser::ParseParentheses(){
 }
 
 std::unique_ptr<Node> Parser::ParseIdentifier(){
-    std::string Name = Identifier;
+    std::string Name = lexer->Identifier;
 
     getNextToken(); // eat identifier
 
@@ -336,7 +336,7 @@ std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
 std::vector<std::string> Parser::ParseArgumentDefinition() {
     std::vector<std::string> Arguments;
     while(CurrentToken == identifier){
-        Arguments.push_back(std::move(Identifier));
+        Arguments.push_back(std::move(lexer->Identifier));
         getNextToken();     // eat identifier
         if(CurrentToken == ',' ){
             getNextToken(); // eat ',' and continue
