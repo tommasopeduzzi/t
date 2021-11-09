@@ -86,8 +86,8 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         LogErrorLineNo("expected Parentheses");
         return nullptr;
     }
-    this->getNextToken();     // eat '('
-    auto Arguments = this->ParseArgumentDefinition();
+    getNextToken();     // eat '('
+    auto Arguments = ParseArgumentDefinition();
 
     std::vector<std::unique_ptr<Node>> Expressions;
 
@@ -308,6 +308,10 @@ std::unique_ptr<Node> Parser::ParseReturnValue(){
 
 std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
     std::vector<std::unique_ptr<Node>> Arguments;
+    if(CurrentToken == ')'){
+        getNextToken();     // eat ')', no arguments
+        return Arguments;
+    }
     while(CurrentToken != ')'){
         if(auto Argument = ParseExpression()){
             Arguments.push_back(std::move(Argument));
@@ -335,6 +339,10 @@ std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
 
 std::vector<std::string> Parser::ParseArgumentDefinition() {
     std::vector<std::string> Arguments;
+    if (CurrentToken == ')'){
+        getNextToken(); // eat ')' in case 0 of arguments.
+        return Arguments;
+    }
     while(CurrentToken == identifier){
         Arguments.push_back(std::move(lexer->Identifier));
         getNextToken();     // eat identifier

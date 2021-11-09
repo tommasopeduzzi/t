@@ -1,10 +1,10 @@
-def test(n)
-    var result = 0
-    var i = 10000
-    while result < n then
-        result = result + 1
-        var i = 10000000
+import "test2.t"
+def test()
+    for i = 0, i < 3000, 1 then
+        var result = 0
+        return result
     end
-    return i
+    return 0
 end
-return test(9)
+import "test2.t"
+return test()

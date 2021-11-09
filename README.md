@@ -31,3 +31,5 @@ TODO:
   - [ ] IO
   - [ ] Random
   - [ ] Time
+- [ ] Better Errors
+- [ ] Documentation

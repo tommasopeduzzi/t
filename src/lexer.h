@@ -21,6 +21,8 @@ enum Tokens{
     then_tok = -11,
     for_tok = -12,
     while_tok = -13,
+    import_tok = -14,
+    string = -15,
 };
 
 
@@ -28,8 +30,9 @@ enum Tokens{
 class Lexer {
 public:
     double NumberValue;
+    std::string StringValue;
     std::string Identifier;
-    char LastChar;
+    char LastChar = ' ';
     int lineNo;
     int getToken();
     bool isWhiteSpace(char c);

@@ -15,6 +15,8 @@
 #include "llvm/IR/IRPrintingPasses.h"
 void HandleExpression();
 
+void HandleImport();
+
 void HandleExternDeclaration();
 
 void HandleFunctionDefinition();
@@ -42,6 +44,9 @@ int main() {
                 break;
             case ext:
                 HandleExternDeclaration();
+                break;
+            case import_tok:
+                HandleImport();
                 break;
             default:
                 HandleExpression();
@@ -99,6 +104,18 @@ void RunEntry(){
 
         fprintf(stderr, "Evaluated to %f\n", Expr());
     }
+}
+
+void HandleImport(){
+    parser->getNextToken();
+    if(parser->CurrentToken != string){
+        std::cerr << "Expected string after import!\n";
+        return;
+    }
+    std::string fileName = parser->lexer->StringValue;
+    parser->getNextToken();     // eat string
+    std::cerr << "Importing " << fileName << "\n";
+    return;
 }
 
 void HandleFunctionDefinition() {

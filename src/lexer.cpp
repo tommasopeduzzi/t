@@ -40,6 +40,8 @@ int Lexer::getToken(){
             return for_tok;
         else if (Identifier == "while")
             return while_tok;
+        else if (Identifier == "import")
+            return import_tok;
         else
             return identifier;
     }
@@ -63,6 +65,17 @@ int Lexer::getToken(){
 
         NumberValue = strtod(NumberString.c_str(), 0);
         return number;
+    }
+
+    if(LastChar == '"'){
+        StringValue = "";
+        LastChar = getchar();
+        while (LastChar != '"' && LastChar != EOF){
+            StringValue += LastChar;
+            LastChar = getchar();
+        }
+        LastChar = getchar();
+        return string;
     }
 
     // Handle comments
