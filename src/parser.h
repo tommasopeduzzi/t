@@ -21,10 +21,12 @@ static std::map<char, int> OperatorPrecedence{
 
 class Parser{
 public:
-    Parser(std::unique_ptr<Lexer> lexer) : lexer(std::move(lexer)) {}
     int CurrentToken;
     int getNextToken();
     std::unique_ptr<Lexer> lexer;
+    void ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
+              std::vector<std::unique_ptr<Node>> &TopLevelExpressions);
+    void HandleImport();
     std::unique_ptr<Node> ParseExpression();
     std::unique_ptr<Node> ParsePrimaryExpression();
     std::unique_ptr<Node> ParseIfStatement();

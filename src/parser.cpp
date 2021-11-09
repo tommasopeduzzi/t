@@ -2,9 +2,54 @@
 // Created by tommasopeduzzi on 12/08/2021.
 //
 #include <memory>
+#include <utility>
 #include "lexer.h"
 #include "parser.h"
 #include "error.h"
+
+std::unique_ptr<Node> CheckForNull(std::unique_ptr<Node> node){
+    if(!node)
+        return nullptr;
+    return std::move(node);
+}
+
+void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
+                          std::vector<std::unique_ptr<Node>> &TopLevelExpressions){
+    lexer = std::make_unique<Lexer>();
+    getNextToken();     // get first token
+    while (true) {
+        switch (CurrentToken) {
+            case eof:
+                return;
+            case def:
+                FunctionDeclarations.push_back(std::move(ParseFunction()));
+                break;
+            case ext:
+                FunctionDeclarations.push_back(std::move(
+                        CheckForNull(std::move(ParseExtern()))));
+                break;
+            case import_tok:
+                HandleImport();
+                break;
+            default:
+                TopLevelExpressions.push_back(std::move(
+                        CheckForNull(std::move(ParseExpression()))));
+                break;
+        }
+    }
+}
+
+void Parser::HandleImport(){
+    getNextToken();
+    if(CurrentToken != string){
+        std::cerr << "Expected string after import!\n";
+        return;
+    }
+    std::string fileName = lexer->StringValue;
+    getNextToken();     // eat string
+    std::cerr << "Importing " << fileName << "\n";
+    return;
+}
 
 int Parser::getNextToken(){
     return CurrentToken = lexer->getToken();

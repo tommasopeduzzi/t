@@ -24,41 +24,28 @@ void HandleFunctionDefinition();
 void RunEntry();
 
 llvm::ExitOnError ExitOnErr;
-std::vector<std::unique_ptr<Node>> TopLevelExpressions;
+std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 std::unique_ptr<Parser> parser;
 std::unique_ptr<Lexer> lexer;
-int main() {
+int main(int argc, char* argv[]) {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
-    lexer = std::make_unique<Lexer>();
-    parser = std::make_unique<Parser>(std::move(lexer));
-    parser->getNextToken(); // get the first token
-    while (true) {
-        switch (parser->CurrentToken) {
-            case eof:
-                RunEntry();
-                return 0;
-            case def:
-                HandleFunctionDefinition();
-                break;
-            case ext:
-                HandleExternDeclaration();
-                break;
-            case import_tok:
-                HandleImport();
-                break;
-            default:
-                HandleExpression();
-                break;
-        }
-    }
+    parser = std::make_unique<Parser>();
+    parser->ParseFile(argv[0], FunctionDeclarations, TopLevelExpressions);
+    RunEntry();
 }
 
 void RunEntry(){
     auto entryFunction = std::make_unique<Function>("entry",
                                                     std::vector<std::string>(),
                                                     std::move(TopLevelExpressions));
+    for(auto &Decl : FunctionDeclarations){
+        if(auto IR = Decl->codegen()){
+            IR->print(llvm::errs());
+            fprintf(stderr, "\n");
+        }
+    }
     if(auto entry = entryFunction->codegen()){
         auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
         entry->print(llvm::errs());
@@ -72,8 +59,6 @@ void RunEntry(){
 
 
         llvm::PassBuilder PB;
-
-        // FAM.registerPass([&] { return PB.buildDefaultAAPipeline(); });
 
         PB.registerModuleAnalyses(MAM);
         PB.registerCGSCCAnalyses(CGAM);
@@ -94,11 +79,15 @@ void RunEntry(){
             return;
         }
         if (auto Err = JIT.get()->addIRModule(
-                llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context))))
+                llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context)))){
+            std::cerr << "Error loading module: " << toString(std::move(Err)) << "\n";
             return;
+        }
         auto EntrySym = JIT->lookup("entry");
-        if (!EntrySym)
+        if (!EntrySym){
+            std::cerr << "Error loading entry-function!\n";
             return;
+        }
 
         auto *Expr = (double(*)())EntrySym->getAddress();
 
@@ -106,17 +95,6 @@ void RunEntry(){
     }
 }
 
-void HandleImport(){
-    parser->getNextToken();
-    if(parser->CurrentToken != string){
-        std::cerr << "Expected string after import!\n";
-        return;
-    }
-    std::string fileName = parser->lexer->StringValue;
-    parser->getNextToken();     // eat string
-    std::cerr << "Importing " << fileName << "\n";
-    return;
-}
 
 void HandleFunctionDefinition() {
     if(auto Function = parser->ParseFunction()){
