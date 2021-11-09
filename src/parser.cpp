@@ -14,7 +14,7 @@ std::unique_ptr<Node> CheckForNull(std::unique_ptr<Node> node){
 }
 
 void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
-                          std::vector<std::unique_ptr<Node>> &TopLevelExpressions){
+                          std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles){
     lexer = std::make_unique<Lexer>();
     getNextToken();     // get first token
     while (true) {
@@ -29,7 +29,7 @@ void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> 
                         CheckForNull(std::move(ParseExtern()))));
                 break;
             case import_tok:
-                HandleImport();
+                HandleImport(FunctionDeclarations, TopLevelExpressions, ImportedFiles);
                 break;
             default:
                 TopLevelExpressions.push_back(std::move(
@@ -39,16 +39,20 @@ void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> 
     }
 }
 
-void Parser::HandleImport(){
+void Parser::HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
+                          std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles) {
     getNextToken();
-    if(CurrentToken != string){
+    if (CurrentToken != string) {
         std::cerr << "Expected string after import!\n";
         return;
     }
     std::string fileName = lexer->StringValue;
     getNextToken();     // eat string
-    std::cerr << "Importing " << fileName << "\n";
-    return;
+    auto parser = std::make_unique<Parser>();
+    if (ImportedFiles.find(fileName) == ImportedFiles.end()) {
+        ImportedFiles.insert(fileName);
+        parser->ParseFile(fileName, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
+    }
 }
 
 int Parser::getNextToken(){

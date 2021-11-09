@@ -25,8 +25,9 @@ public:
     int getNextToken();
     std::unique_ptr<Lexer> lexer;
     void ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
-              std::vector<std::unique_ptr<Node>> &TopLevelExpressions);
-    void HandleImport();
+              std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles);
+    void HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
+                      std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles);
     std::unique_ptr<Node> ParseExpression();
     std::unique_ptr<Node> ParsePrimaryExpression();
     std::unique_ptr<Node> ParseIfStatement();

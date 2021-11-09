@@ -1,4 +1,4 @@
-import "test2.t"
+import "test.t"
 def test()
     for i = 0, i < 3000, 1 then
         var result = 0
@@ -6,5 +6,5 @@ def test()
     end
     return 0
 end
-import "test2.t"
+import "test.t"
 return test()

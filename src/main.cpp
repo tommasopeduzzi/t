@@ -27,12 +27,18 @@ llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 std::unique_ptr<Parser> parser;
 std::unique_ptr<Lexer> lexer;
+std::set<std::string> ImportedFiles;
 int main(int argc, char* argv[]) {
+    if(argc != 2){
+        std::cerr << "Expected File as first argument!\n" << argc;
+        return 0;
+    }
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
     parser = std::make_unique<Parser>();
-    parser->ParseFile(argv[0], FunctionDeclarations, TopLevelExpressions);
+    ImportedFiles.insert(argv[1]);
+    parser->ParseFile(argv[1], FunctionDeclarations, TopLevelExpressions, ImportedFiles);
     RunEntry();
 }
 
