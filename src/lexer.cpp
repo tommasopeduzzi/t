@@ -7,17 +7,34 @@
 #include "error.h"
 #include "lexer.h"
 
+Lexer::Lexer(std::string filePath){
+    this->filePath = filePath;
+    file.open(filePath);
+    lineNo = 1;
+}
+
+char Lexer::getChar(){
+    char c = file.get();
+    if(file.eof()){
+        return EOF;
+    }
+    if(c == '\n'){
+        lineNo++;
+    }
+    return c;
+}
+
 int Lexer::getToken(){
     // Eat up Whitespace
     while(isWhiteSpace(LastChar)){
-        LastChar = getchar();
+        LastChar = getChar();
     }
 
     // Handle Identifiers
     if(isAlpha(LastChar)){
         Identifier = "";
         Identifier += LastChar;
-        while(isAlphaNum(LastChar = getchar()))
+        while(isAlphaNum(LastChar = getChar()))
             Identifier += LastChar;
 
         if (Identifier == "def")
@@ -60,7 +77,7 @@ int Lexer::getToken(){
                 decimal = true;
             }
             NumberString += LastChar;
-            LastChar = getchar();
+            LastChar = getChar();
         } while(isDigit(LastChar) || LastChar == '.');
 
         NumberValue = strtod(NumberString.c_str(), 0);
@@ -69,19 +86,19 @@ int Lexer::getToken(){
 
     if(LastChar == '"'){
         StringValue = "";
-        LastChar = getchar();
+        LastChar = getChar();
         while (LastChar != '"' && LastChar != EOF){
             StringValue += LastChar;
-            LastChar = getchar();
+            LastChar = getChar();
         }
-        LastChar = getchar();
+        LastChar = getChar();
         return string;
     }
 
     // Handle comments
     if(LastChar == '#'){
         do{
-            LastChar = getchar();
+            LastChar = getChar();
         } while(LastChar != EOF && LastChar != '\n' && LastChar != '\r');
 
         if(LastChar != EOF){
@@ -95,7 +112,7 @@ int Lexer::getToken(){
     }
     // If something else; returns ascii value
     char returnValue = LastChar;
-    LastChar = getchar();
+    LastChar = getChar();
     return int (returnValue);
 }
 
@@ -112,7 +129,5 @@ bool Lexer::isAlpha(char c) {
 }
 
 bool Lexer::isWhiteSpace(char c) {
-    if(c == '\n')
-        lineNo++;
     return std::regex_match(std::string(1, c), std::regex(whitespaceRegex));
 }

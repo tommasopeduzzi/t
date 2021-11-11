@@ -15,14 +15,16 @@ std::unique_ptr<Node> CheckForNull(std::unique_ptr<Node> node){
 
 void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
                           std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles){
-    lexer = std::make_unique<Lexer>();
+    lexer = std::make_unique<Lexer>(filePath);
+    ImportedFiles.insert(filePath);
     getNextToken();     // get first token
     while (true) {
         switch (CurrentToken) {
             case eof:
                 return;
             case def:
-                FunctionDeclarations.push_back(std::move(ParseFunction()));
+                FunctionDeclarations.push_back(std::move(
+                        CheckForNull(std::move(ParseFunction()))));
                 break;
             case ext:
                 FunctionDeclarations.push_back(std::move(
@@ -50,7 +52,6 @@ void Parser::HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclaratio
     getNextToken();     // eat string
     auto parser = std::make_unique<Parser>();
     if (ImportedFiles.find(fileName) == ImportedFiles.end()) {
-        ImportedFiles.insert(fileName);
         parser->ParseFile(fileName, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
     }
 }
@@ -322,12 +323,12 @@ std::unique_ptr<Node> Parser::ParseParentheses(){
         return nullptr;
     }
 
-    if(CurrentToken != '('){
-        LogErrorLineNo("Expected '(' ");
+    if(CurrentToken != ')'){
+        LogErrorLineNo("Expected ')' ");
         return nullptr;
     }
     getNextToken();
-    return value;
+    return std::move(value);
 }
 
 std::unique_ptr<Node> Parser::ParseIdentifier(){

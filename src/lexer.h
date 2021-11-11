@@ -3,6 +3,7 @@
 //
 
 #include <string>
+#include <fstream>
 
 #ifndef T_LEXER_H
 #define T_LEXER_H
@@ -29,12 +30,16 @@ enum Tokens{
 
 class Lexer {
 public:
+    Lexer(std::string filePath);
     double NumberValue;
     std::string StringValue;
     std::string Identifier;
     char LastChar = ' ';
+    std::string filePath;
+    std::ifstream file;
     int lineNo;
     int getToken();
+    char getChar();
     bool isWhiteSpace(char c);
     bool isAlpha(char c);
     bool isAlphaNum(char c);
