@@ -1,2 +1,3 @@
-import "/Users/tommaso.peduzzi/Documents/Programmieren/t/src/test2.t"
-return sin(7)
+import "/Users/tommaso.peduzzi/Documents/Programmieren/t/std/math.t"
+
+return cos(3.141592/2)

@@ -17,7 +17,7 @@ TODO:
   - [x] If-Else-Statements
   - [x] For-Loops
   - [x] While-Loops
-- [ ] Importing of other files
+- [x] Importing of other files
 - [ ] Global Variables
 - [ ] Types
   - [ ] Numbers

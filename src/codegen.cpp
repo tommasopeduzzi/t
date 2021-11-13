@@ -9,29 +9,14 @@
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
-static llvm::AnalysisManager<llvm::Function> MAM;
 static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
 static std::vector<std::map<std::string, llvm::AllocaInst *>> Variables;
-
-void InitializeModule(){
-    // Open a new module.
-    Module = std::make_unique<llvm::Module>("t", *Context);
-}
 
 void InitializeLLVM() {
     // TODO: Make my own JIT, see tutorial @ llvm.org
     Context = std::make_unique<llvm::LLVMContext>();
-    InitializeModule();
-    // Create a new builder for the module.
+    Module = std::make_unique<llvm::Module>("t", *Context);
     Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
-    // Create a new pass manager attached to it.
-    FunctionOptimizer = std::make_unique<llvm::FunctionPassManager>();
-
-    /* TODO: Figure out how the new PassSystem works / figure
-     out where tf to get the passes from, don't want to write my own.
-     Also figure out if I really want to actually use the new PassManager,
-     as I read that I can't use Platform-dependant backend.*/
-    FunctionOptimizer->addPass(llvm::VerifierPass());
 }
 
 llvm::AllocaInst *CreateAlloca(llvm::Function *Function,

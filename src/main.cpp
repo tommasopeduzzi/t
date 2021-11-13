@@ -13,13 +13,6 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/IRPrintingPasses.h"
-void HandleExpression();
-
-void HandleImport();
-
-void HandleExternDeclaration();
-
-void HandleFunctionDefinition();
 
 void RunEntry();
 
