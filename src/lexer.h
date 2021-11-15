@@ -4,6 +4,7 @@
 
 #include <string>
 #include <fstream>
+#include <set>
 
 #ifndef T_LEXER_H
 #define T_LEXER_H
@@ -24,9 +25,14 @@ enum Tokens{
     while_tok = -13,
     import_tok = -14,
     string = -15,
+    type = -16,
 };
 
-
+const std::set<std::string> Types {
+    "number",
+    "bool",
+    "string"
+};
 
 class Lexer {
 public:
@@ -34,6 +40,7 @@ public:
     double NumberValue;
     std::string StringValue;
     std::string Identifier;
+    std::string Type;
     char LastChar = ' ';
     std::string filePath;
     std::ifstream file;

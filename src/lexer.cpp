@@ -59,6 +59,10 @@ int Lexer::getToken(){
             return while_tok;
         else if (Identifier == "import")
             return import_tok;
+        else if (Types.find(Identifier) != Types.end()){
+            Type = Identifier;
+            return type;
+        }
         else
             return identifier;
     }

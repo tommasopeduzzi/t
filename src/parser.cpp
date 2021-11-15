@@ -141,6 +141,23 @@ std::unique_ptr<Node> Parser::ParseFunction() {
     getNextToken();     // eat '('
     auto Arguments = ParseArgumentDefinition();
 
+    if (CurrentToken != '-'){
+        LogErrorLineNo("Expected '->'!");
+        return nullptr;
+    }
+    getNextToken();     // eat '-'
+    if (CurrentToken != '>'){
+        LogErrorLineNo("Expected '->'!");
+        return nullptr;
+    }
+
+    getNextToken();     // eat '>'
+
+    if(CurrentToken != type){
+        LogErrorLineNo("Expected type!");
+        return nullptr;
+    }
+    getNextToken();     // eat type
     std::vector<std::unique_ptr<Node>> Expressions;
 
     while (CurrentToken != end){
@@ -288,8 +305,13 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
 std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     getNextToken(); //eat "var"
 
+    if(CurrentToken != type){
+        LogErrorLineNo("Expected type after 'var'!");
+        return nullptr;
+    }
+    getNextToken(); //eat type
     if(CurrentToken != identifier){
-        LogErrorLineNo("Expected identifier after 'var'!");
+        LogErrorLineNo("Expected identifier after type!");
         return nullptr;
     }
 
@@ -402,7 +424,12 @@ std::vector<std::string> Parser::ParseArgumentDefinition() {
         getNextToken(); // eat ')' in case 0 of arguments.
         return Arguments;
     }
-    while(CurrentToken == identifier){
+    while(CurrentToken == type){
+        getNextToken(); // eat type
+        if(CurrentToken != identifier){
+            LogErrorLineNo("Expected identifier after type!");
+            return {};
+        }
         Arguments.push_back(std::move(lexer->Identifier));
         getNextToken();     // eat identifier
         if(CurrentToken == ',' ){
