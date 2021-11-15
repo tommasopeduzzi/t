@@ -63,27 +63,6 @@ int Lexer::getToken(){
             return identifier;
     }
 
-    // Handle Digits
-    if(isDigit(LastChar) || LastChar == '.'){
-        bool decimal = false;
-        std::string NumberString;
-
-        do{
-            if(LastChar == '.'){
-                if(decimal){
-                    LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
-                    return -1;
-                }
-                decimal = true;
-            }
-            NumberString += LastChar;
-            LastChar = getChar();
-        } while(isDigit(LastChar) || LastChar == '.');
-
-        NumberValue = strtod(NumberString.c_str(), 0);
-        return number;
-    }
-
     if(LastChar == '"'){
         StringValue = "";
         LastChar = getChar();
@@ -106,10 +85,32 @@ int Lexer::getToken(){
         }
     }
 
+    // Handle Digits
+    if(isDigit(LastChar) || LastChar == '.'){
+        bool decimal = false;
+        std::string NumberString;
+
+        do{
+            if(LastChar == '.'){
+                if(decimal){
+                    LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
+                    return -1;
+                }
+                decimal = true;
+            }
+            NumberString += LastChar;
+            LastChar = getChar();
+        } while(isDigit(LastChar) || LastChar == '.');
+
+        NumberValue = strtod(NumberString.c_str(), 0);
+        return number;
+    }
+
     // Handle EOF
     if(LastChar == EOF){
         return eof;
     }
+
     // If something else; returns ascii value
     char returnValue = LastChar;
     LastChar = getChar();

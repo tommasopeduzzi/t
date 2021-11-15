@@ -48,6 +48,16 @@ llvm::Value *GetVariable(std::string name){
     return nullptr;
 }
 
+llvm::Value *Negative::codegen(){
+    auto *Value = Expression->codegen();
+    if(!Value){
+        return nullptr;
+    }
+    return Builder->CreateFMul(llvm::ConstantFP::get(*Context,
+                                                     llvm::APFloat(-1.0)),
+                               Value, "neg");
+}
+
 llvm::Value *Number::codegen() {
     return llvm::ConstantFP::get(*Context, llvm::APFloat(Value));
 }

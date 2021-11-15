@@ -116,6 +116,8 @@ std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
             return ParseForLoop();
         case while_tok:
             return ParseWhileLoop();
+        case '-':
+            return ParseNegative();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
@@ -306,6 +308,13 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
         return nullptr;     //error already logged
 
     return std::make_unique<VariableDefinition>(Name, std::move(Init));
+}
+std::unique_ptr<Node> Parser::ParseNegative() {
+    getNextToken(); //eat '-'
+    auto Expression = ParseExpression();
+    if(!Expression)
+        return nullptr;
+    return std::make_unique<Negative>(std::move(Expression));
 }
 
 std::unique_ptr<Number> Parser::ParseNumber(){

@@ -34,6 +34,13 @@ public:
     virtual llvm::Value *codegen() = 0;
 };
 
+class Negative : public Node {
+    std::unique_ptr<Node>  Expression;
+public:
+    Negative(std::unique_ptr<Node> Expression) : Expression(std::move(Expression)) {}
+    virtual llvm::Value *codegen();
+};
+
 class Number : public Node{
     double Value;
 public:
