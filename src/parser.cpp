@@ -309,6 +309,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
         LogErrorLineNo("Expected type after 'var'!");
         return nullptr;
     }
+    auto Type = lexer->Identifier;
     getNextToken(); //eat type
     if(CurrentToken != identifier){
         LogErrorLineNo("Expected identifier after type!");
@@ -329,7 +330,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     if(!Init)
         return nullptr;     //error already logged
 
-    return std::make_unique<VariableDefinition>(Name, std::move(Init));
+    return std::make_unique<VariableDefinition>(Name, Type, std::move(Init));
 }
 std::unique_ptr<Node> Parser::ParseNegative() {
     getNextToken(); //eat '-'
@@ -418,19 +419,20 @@ std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
     return Arguments;
 }
 
-std::vector<std::string> Parser::ParseArgumentDefinition() {
-    std::vector<std::string> Arguments;
+std::vector<std::pair<std::string,std::string>> Parser::ParseArgumentDefinition() {
+    std::vector<std::pair<std::string,std::string>> Arguments;
     if (CurrentToken == ')'){
         getNextToken(); // eat ')' in case 0 of arguments.
         return Arguments;
     }
     while(CurrentToken == type){
+        std::string Type = lexer->Identifier;
         getNextToken(); // eat type
         if(CurrentToken != identifier){
             LogErrorLineNo("Expected identifier after type!");
             return {};
         }
-        Arguments.push_back(std::move(lexer->Identifier));
+        Arguments.push_back(std::make_pair(Type, lexer->Identifier));
         getNextToken();     // eat identifier
         if(CurrentToken == ',' ){
             getNextToken(); // eat ',' and continue

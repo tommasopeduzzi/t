@@ -9,8 +9,7 @@
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
-static std::unique_ptr<llvm::PassManager<llvm::Function>> FunctionOptimizer;
-static std::vector<std::map<std::string, llvm::AllocaInst *>> Variables;
+static std::vector<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>> Variables;
 
 void InitializeLLVM() {
     // TODO: Make my own JIT, see tutorial @ llvm.org
@@ -27,25 +26,34 @@ llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
                                  Name.c_str());
 }
 
+llvm::Type *GetType(std::string Name){
+    if (Name == "number")
+        return llvm::Type::getDoubleTy(*Context);
+    else if (Name == "bool")
+        return llvm::Type::getInt1Ty(*Context);
+    else
+        return llvm::Type::getInt8PtrTy(*Context);
+}
+
 void CreateScope(){
-    Variables.push_back(std::map<std::string, llvm::AllocaInst *>());
+    Variables.push_back(std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>());
 }
 
 void DestroyScope(){
     Variables.pop_back();
 }
 
-void CreateVariable(std::string Name, llvm::AllocaInst *Value){
-    Variables.back()[Name] = Value;
+void CreateVariable(std::string Name, llvm::AllocaInst *Alloca, llvm::Type *Type){
+    Variables.back()[Name] = std::make_pair(Type, Alloca);
 }
 
-llvm::Value *GetVariable(std::string name){
+std::pair<llvm::Type*, llvm::AllocaInst*> GetVariable(std::string name){
     for(auto &Scope : Variables){
         if(Scope.find(name) != Scope.end()){
             return Scope[name];
         }
     }
-    return nullptr;
+    return std::make_pair(nullptr, nullptr);
 }
 
 llvm::Value *Negative::codegen(){
@@ -63,10 +71,10 @@ llvm::Value *Number::codegen() {
 }
 
 llvm::Value *Variable::codegen(){
-    llvm::Value *value = GetVariable(Name);
-    if(!value)
+    auto Variable = GetVariable(Name);
+    if(!Variable.first || !Variable.second)
         return LogError("Unknown Variable");
-    return Builder->CreateLoad(value);
+    return Builder->CreateLoad(Variable.first, Variable.second);
 }
 
 llvm::Value *VariableDefinition::codegen(){
@@ -81,9 +89,9 @@ llvm::Value *VariableDefinition::codegen(){
     else{
         initialValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
     }
-
+    auto Type = GetType(this->Type);
     auto Alloca = CreateAlloca(Function, Name);
-    CreateVariable(Name, Alloca);
+    CreateVariable(Name, Alloca, Type);
     return Builder->CreateStore(initialValue, Alloca);
 }
 
@@ -98,10 +106,10 @@ llvm::Value *BinaryExpression::codegen(){
             return nullptr;
 
         auto Variable = GetVariable(L->Name);
-        if(!Variable)
+        if(!Variable.first || !Variable.second)
             return LogError("Unknown Variable");
 
-        Builder->CreateStore(Value, Variable);
+        Builder->CreateStore(Value, Variable.second);
         return Value;
     }
 
@@ -194,7 +202,7 @@ llvm::Value *ForLoop::codegen(){
 
     CreateScope();
     auto Alloca = CreateAlloca(Function, VariableName);
-    CreateVariable(VariableName, Alloca);
+    CreateVariable(VariableName, Alloca, llvm::Type::getDoubleTy(*Context));
     Builder->CreateStore(StartValue, Alloca);
 
     Builder->CreateBr(ForLoopBlock);
@@ -288,13 +296,16 @@ llvm::Value *Function::codegen() {
     llvm::Function *Function = Module->getFunction(Name);
     if(!Function){
         // Create Vector that specifies the types for the arguments (atm only floating point numbers aka doubles)
-        std::vector<llvm::Type*> ArgumentTypes (Arguments.size(), llvm::Type::getDoubleTy(*Context));
+        std::vector<llvm::Type*> ArgumentTypes (Arguments.size());
+        for (int i = 0; i < Arguments.size();i++){
+            ArgumentTypes[i] = GetType(Arguments[i].first);
+        }
         llvm::FunctionType *FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*Context), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {
             auto name = Arguments[i];
-            Argument.setName(Arguments[i]);
+            Argument.setName(Arguments[i].second);
             i += 1;
         }
     }
@@ -310,7 +321,7 @@ llvm::Value *Function::codegen() {
     for(auto &Arg : Function->args()){
         llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getName().str());
         Builder->CreateStore(&Arg, Alloca);
-        CreateVariable(Arg.getName().str(), Alloca);
+        CreateVariable(Arg.getName().str(), Alloca, Arg.getType());
     }
 
     for(int i = 0; i < Body.size(); i++){
@@ -330,12 +341,15 @@ llvm::Value *Extern::codegen() {
     if(!Function){
         // Create Vector that specifies the types for the arguments (atm only floating point numbers aka doubles)
         std::vector<llvm::Type*> ArgumentTypes (Arguments.size(), llvm::Type::getDoubleTy(*Context));
+        for (int i = 0; i < Arguments.size();i++){
+            ArgumentTypes[i] = GetType(Arguments[i].first);
+        }
         llvm::FunctionType *FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*Context), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {
             auto name = Arguments[i];
-            Argument.setName(Arguments[i]);
+            Argument.setName(Arguments[i].second);
             i += 1;
         }
     }

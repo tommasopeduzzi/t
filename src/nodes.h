@@ -56,11 +56,11 @@ public:
 };
 
 class VariableDefinition : public Node {
-    std::string Name;
+    std::string Name, Type;
     std::unique_ptr<Node> Value;
 public:
-    VariableDefinition(std::string name, std::unique_ptr<Node> Init) :
-        Name(name), Value(std::move(Init)) {}
+    VariableDefinition(std::string name, std::string type, std::unique_ptr<Node> Init) :
+        Name(name), Type(type), Value(std::move(Init)) {}
     virtual llvm::Value *codegen();
 };
 
@@ -125,18 +125,18 @@ public:
 
 class Function : public Node{
     std::string Name;
-    std::vector<std::string> Arguments;
+    std::vector<std::pair<std::string, std::string>> Arguments;
     std::vector<std::unique_ptr<Node>> Body;
 
 public:
     Function(const std::string name,
-             std::vector<std::string> arguments,
+             std::vector<std::pair<std::string, std::string>> arguments,
              std::unique_ptr<Node> body) :
             Name(name), Arguments(move(arguments)) {
         Body.push_back(std::move(body));
     };
     Function(const std::string name,
-             std::vector<std::string> arguments,
+             std::vector<std::pair<std::string, std::string>> arguments,
              std::vector<std::unique_ptr<Node>> body) :
             Name(name), Arguments(move(arguments)), Body(move(body)) {}
 
@@ -145,11 +145,11 @@ public:
 
 class Extern : public Node {
     std::string  Name;
-    std::vector<std::string> Arguments;
+    std::vector<std::pair<std::string, std::string>> Arguments;
 
 public:
     Extern(const std::string name,
-           std::vector<std::string> arguments) :
+           std::vector<std::pair<std::string, std::string>> arguments) :
            Name(name), Arguments(std::move(arguments)) {}
     virtual llvm::Value *codegen();
 };
