@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 }
 
 void RunEntry(){
-    auto entryFunction = std::make_unique<Function>("entry",
+    auto entryFunction = std::make_unique<Function>("entry", "bool",
                                                     std::vector<std::pair<std::string,std::string>>(),
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
@@ -55,7 +55,6 @@ void RunEntry(){
         llvm::FunctionAnalysisManager FAM;
         llvm::CGSCCAnalysisManager CGAM;
         llvm::ModuleAnalysisManager MAM;
-
 
         llvm::PassBuilder PB;
 

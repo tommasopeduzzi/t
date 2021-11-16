@@ -63,6 +63,14 @@ int Lexer::getToken(){
             Type = Identifier;
             return type;
         }
+        else if(Identifier == "true"){
+            BoolValue = true;
+            return tok_bool;
+        }
+        else if(Identifier == "false"){
+            BoolValue = false;
+            return tok_bool;
+        }
         else
             return identifier;
     }

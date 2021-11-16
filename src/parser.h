@@ -38,7 +38,9 @@ public:
     std::unique_ptr<Node> ParseFunction();
     std::unique_ptr<Node> ParseExtern();
     std::unique_ptr<Node> ParseNegative();
-    std::unique_ptr<Number> ParseNumber();
+    std::unique_ptr<Node> ParseNumber();
+    std::unique_ptr<Node> ParseBool();
+    std::unique_ptr<Node> ParseString();
     std::unique_ptr<Node> ParseParentheses();
     std::unique_ptr<Node> ParseIdentifier();
     std::unique_ptr<Node> ParseReturnValue();

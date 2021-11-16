@@ -1,5 +1,7 @@
-def test(number i) -> number
-    var number j = i + 1
-    return j
+def test(bool i) -> bool
+    if 1<3 then
+        return true
+    end
+    return false
 end
-return test(19)
+return test(true)

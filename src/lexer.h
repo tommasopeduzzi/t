@@ -26,6 +26,7 @@ enum Tokens{
     import_tok = -14,
     string = -15,
     type = -16,
+    tok_bool = -17
 };
 
 const std::set<std::string> Types {
@@ -38,6 +39,7 @@ class Lexer {
 public:
     Lexer(std::string filePath);
     double NumberValue;
+    bool BoolValue;
     std::string StringValue;
     std::string Identifier;
     std::string Type;

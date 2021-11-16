@@ -70,6 +70,17 @@ llvm::Value *Number::codegen() {
     return llvm::ConstantFP::get(*Context, llvm::APFloat(Value));
 }
 
+llvm::Value *Bool::codegen() {
+    if(Value)
+        return llvm::ConstantInt::getTrue(*Context);
+    else
+        return llvm::ConstantInt::getFalse(*Context);
+}
+
+llvm::Value *String::codegen(){
+    return nullptr;
+}
+
 llvm::Value *Variable::codegen(){
     auto Variable = GetVariable(Name);
     if(!Variable.first || !Variable.second)
@@ -128,7 +139,7 @@ llvm::Value *BinaryExpression::codegen(){
         case '/':
             return Builder->CreateFDiv(L, R);
         case '<':
-            L = Builder->CreateFCmpULT(L,R);
+            return Builder->CreateFCmpULT(L,R);
             return Builder->CreateUIToFP(L,  // Convert from integer to float
                                         llvm::Type::getDoubleTy(*Context));
         case '>':
@@ -151,9 +162,9 @@ llvm::Value *IfExpression::codegen() {
     auto ConditionValue = Condition->codegen();
     if(!ConditionValue)
         return nullptr;
-
-    ConditionValue = Builder->CreateFCmpONE(ConditionValue,
-                                         llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+    if(ConditionValue->getType() != llvm::Type::getInt1Ty(*Context))
+        ConditionValue = Builder->CreateFCmpONE(ConditionValue,
+                                                llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
 
     auto Function = Builder->GetInsertBlock()->getParent();
 
@@ -300,7 +311,7 @@ llvm::Value *Function::codegen() {
         for (int i = 0; i < Arguments.size();i++){
             ArgumentTypes[i] = GetType(Arguments[i].first);
         }
-        llvm::FunctionType *FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*Context), ArgumentTypes, false);
+        llvm::FunctionType *FunctionType = llvm::FunctionType::get(GetType(Type), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {
@@ -321,7 +332,8 @@ llvm::Value *Function::codegen() {
     for(auto &Arg : Function->args()){
         llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getName().str());
         Builder->CreateStore(&Arg, Alloca);
-        CreateVariable(Arg.getName().str(), Alloca, Arg.getType());
+        auto type = Arg.getType();
+        CreateVariable(Arg.getName().str(), Alloca, type);
     }
 
     for(int i = 0; i < Body.size(); i++){

@@ -118,6 +118,10 @@ std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
             return ParseWhileLoop();
         case '-':
             return ParseNegative();
+        case tok_bool:
+            return ParseBool();
+        case string:
+            return ParseString();
         default:
             LogErrorLineNo("Unexpected Token");
             return nullptr;
@@ -157,6 +161,7 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         LogErrorLineNo("Expected type!");
         return nullptr;
     }
+    auto Type = lexer->Type;
     getNextToken();     // eat type
     std::vector<std::unique_ptr<Node>> Expressions;
 
@@ -169,7 +174,7 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         Expressions.push_back(std::move(Expression));
     }
     getNextToken();     //eat "end"
-    return std::make_unique<Function>(Name,
+    return std::make_unique<Function>(Name, Type,
                                       Arguments,
                                       std::move(Expressions));
 }
@@ -189,7 +194,25 @@ std::unique_ptr<Node> Parser::ParseExtern(){
     }
     getNextToken(); // eats '('
     auto Arguments = ParseArgumentDefinition();
-    return std::make_unique<Extern>(Name, Arguments);
+    if (CurrentToken != '-'){
+        LogErrorLineNo("Expected '->'!");
+        return nullptr;
+    }
+    getNextToken();     // eat '-'
+    if (CurrentToken != '>'){
+        LogErrorLineNo("Expected '->'!");
+        return nullptr;
+    }
+
+    getNextToken();     // eat '>'
+
+    if(CurrentToken != type){
+        LogErrorLineNo("Expected type!");
+        return nullptr;
+    }
+    auto Type = lexer->Type;
+    getNextToken();     // eat type
+    return std::make_unique<Extern>(Name, Type, Arguments);
 }
 
 std::unique_ptr<Node> Parser::ParseIfStatement() {
@@ -332,6 +355,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
 
     return std::make_unique<VariableDefinition>(Name, Type, std::move(Init));
 }
+
 std::unique_ptr<Node> Parser::ParseNegative() {
     getNextToken(); //eat '-'
     auto Expression = ParseExpression();
@@ -340,10 +364,22 @@ std::unique_ptr<Node> Parser::ParseNegative() {
     return std::make_unique<Negative>(std::move(Expression));
 }
 
-std::unique_ptr<Number> Parser::ParseNumber(){
+std::unique_ptr<Node> Parser::ParseNumber(){
     auto number = std::make_unique<Number>(lexer->NumberValue);
     getNextToken(); // eat number
     return std::move(number);
+}
+
+std::unique_ptr<Node> Parser::ParseBool(){
+    auto boolNode = std::make_unique<Bool>(lexer->BoolValue);
+    getNextToken(); // eat bool
+    return std::move(boolNode);
+}
+
+std::unique_ptr<Node> Parser::ParseString(){
+    auto stringNode = std::make_unique<String>(lexer->StringValue);
+    getNextToken(); // eat string
+    return std::move(stringNode);
 }
 
 std::unique_ptr<Node> Parser::ParseParentheses(){

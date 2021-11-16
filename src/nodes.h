@@ -48,6 +48,20 @@ public:
     virtual llvm::Value *codegen();
 };
 
+class Bool : public Node{
+    bool Value;
+public:
+    Bool(const bool value) : Value(value) {}
+    virtual llvm::Value *codegen();
+};
+
+class String : public Node{
+    std::string Value;
+public:
+    String(std::string value) : Value(value) {}
+    virtual llvm::Value *codegen();
+};
+
 class Variable : public Node{
 public:
     Variable(const std::string name) : Name(name){}
@@ -124,33 +138,33 @@ public:
 };
 
 class Function : public Node{
-    std::string Name;
+    std::string Name, Type;
     std::vector<std::pair<std::string, std::string>> Arguments;
     std::vector<std::unique_ptr<Node>> Body;
 
 public:
-    Function(const std::string name,
+    Function(const std::string name, const std::string type,
              std::vector<std::pair<std::string, std::string>> arguments,
              std::unique_ptr<Node> body) :
-            Name(name), Arguments(move(arguments)) {
+            Name(name), Type(type), Arguments(move(arguments)) {
         Body.push_back(std::move(body));
     };
-    Function(const std::string name,
+    Function(const std::string name, const std::string type,
              std::vector<std::pair<std::string, std::string>> arguments,
              std::vector<std::unique_ptr<Node>> body) :
-            Name(name), Arguments(move(arguments)), Body(move(body)) {}
+            Name(name), Type(type), Arguments(move(arguments)), Body(move(body)) {}
 
     virtual llvm::Value *codegen();
 };
 
 class Extern : public Node {
-    std::string  Name;
+    std::string  Name, Type;
     std::vector<std::pair<std::string, std::string>> Arguments;
 
 public:
-    Extern(const std::string name,
+    Extern(const std::string name, const std::string type,
            std::vector<std::pair<std::string, std::string>> arguments) :
-           Name(name), Arguments(std::move(arguments)) {}
+           Name(name), Type(type), Arguments(std::move(arguments)) {}
     virtual llvm::Value *codegen();
 };
 
