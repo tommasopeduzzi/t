@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 }
 
 void RunEntry(){
-    auto entryFunction = std::make_unique<Function>("entry", "bool",
+    auto entryFunction = std::make_unique<Function>("entry", "number",
                                                     std::vector<std::pair<std::string,std::string>>(),
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){

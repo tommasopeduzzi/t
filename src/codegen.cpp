@@ -78,7 +78,7 @@ llvm::Value *Bool::codegen() {
 }
 
 llvm::Value *String::codegen(){
-    return nullptr;
+    return Builder->CreateGlobalStringPtr(llvm::StringRef(Value));
 }
 
 llvm::Value *Variable::codegen(){

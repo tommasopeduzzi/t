@@ -1,7 +1,5 @@
-def test(bool i) -> bool
-    if 1<3 then
-        return true
-    end
-    return false
+def test(bool i) -> string
+    return "test"
 end
-return test(true)
+var string testResult = test(true)
+return 0
