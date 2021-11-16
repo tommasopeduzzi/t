@@ -19,11 +19,11 @@ TODO:
   - [x] While-Loops
 - [x] Importing of other files
 - [ ] Global Variables
-- [ ] Types
-  - [ ] Numbers
-  - [ ] Strings
-  - [ ] Booleans
-  - [ ] Lists
+- [x] Types
+  - [x] Numbers
+  - [x] Strings
+  - [x] Booleans
+  - [ ] (Lists)
 - [ ] Standard Library
   - [ ] Call into C-Functions
   - [ ] Math

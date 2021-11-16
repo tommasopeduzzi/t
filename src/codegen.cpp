@@ -143,7 +143,7 @@ llvm::Value *BinaryExpression::codegen(){
             return Builder->CreateUIToFP(L,  // Convert from integer to float
                                         llvm::Type::getDoubleTy(*Context));
         case '>':
-            L = Builder->CreateFCmpUGT(L,R);
+            return Builder->CreateFCmpUGT(L,R);
             return Builder->CreateUIToFP(L,  // Convert from integer to float
                                         llvm::Type::getDoubleTy(*Context));
         default:
@@ -242,7 +242,8 @@ llvm::Value *ForLoop::codegen(){
     if(!EndCondition)
         return nullptr;
 
-    EndCondition = Builder->CreateFCmpONE(
+    if(EndCondition->getType() != llvm::Type::getInt1Ty(*Context))
+        EndCondition = Builder->CreateFCmpONE(
             EndCondition, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "conditon");
 
     auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
@@ -275,8 +276,9 @@ llvm::Value *WhileLoop::codegen(){
     ConditionValue = Condition->codegen();
     if(!ConditionValue)
         return nullptr;
-
-    ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
+    
+    if(ConditionValue->getType() != llvm::Type::getInt1Ty(*Context))
+        ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
     DestroyScope();
