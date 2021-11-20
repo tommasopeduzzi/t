@@ -276,7 +276,7 @@ llvm::Value *WhileLoop::codegen(){
     ConditionValue = Condition->codegen();
     if(!ConditionValue)
         return nullptr;
-    
+
     if(ConditionValue->getType() != llvm::Type::getInt1Ty(*Context))
         ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
 

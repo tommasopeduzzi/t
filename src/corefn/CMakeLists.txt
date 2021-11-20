@@ -1,0 +1,5 @@
+add_library(corefn SHARED corefn.cpp)
+llvm_map_components_to_libnames(llvm_libs support core irreader executionengine native codegen orcjit orcshared orctargetprocess)
+execute_process(COMMAND llvm-config --libs OUTPUT_VARIABLE libraries)
+string(STRIP ${libraries} libraries)
+target_link_libraries(corefn  ${llvm_libs})

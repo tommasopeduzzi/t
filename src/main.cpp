@@ -13,23 +13,26 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/IRPrintingPasses.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "corefn/corefn.h"
 
 void RunEntry();
 
 llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
-std::unique_ptr<Parser> parser;
-std::unique_ptr<Lexer> lexer;
 std::set<std::string> ImportedFiles;
+
 int main(int argc, char* argv[]) {
-    if(argc != 2){
+    if(argc < 2){
         std::cerr << "Expected File as first argument!\n" << argc;
         return 0;
     }
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
-    parser = std::make_unique<Parser>();
+    std::unique_ptr<Parser> parser = std::make_unique<Parser>();
     ImportedFiles.insert(argv[1]);
     parser->ParseFile(argv[1], FunctionDeclarations, TopLevelExpressions, ImportedFiles);
     RunEntry();
@@ -41,15 +44,23 @@ void RunEntry(){
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
         if(auto IR = Decl->codegen()){
-            IR->print(llvm::errs());
+            //IR->print(llvm::errs());
             fprintf(stderr, "\n");
         }
     }
     if(auto entry = entryFunction->codegen()){
         auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-        entry->print(llvm::errs());
+        // entry->print(llvm::errs());
         if (!JIT)
             return;
+        auto &dl = JIT->getDataLayout();
+        llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
+        auto &jd = JIT->getMainJITDylib();
+
+        auto s = llvm::orc::absoluteSymbols({{ Mangle("printString"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printString), llvm::JITSymbolFlags::Exported)}});
+        jd.define(s);
+        s = llvm::orc::absoluteSymbols({{ Mangle("printAscii"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printAscii), llvm::JITSymbolFlags::Exported)}});
+        jd.define(s);
 
         llvm::LoopAnalysisManager LAM;
         llvm::FunctionAnalysisManager FAM;
@@ -69,7 +80,7 @@ void RunEntry(){
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::PromotePass()));
-        MPM.addPass(llvm::PrintModulePass());
+        //MPM.addPass(llvm::PrintModulePass());
         MPM.run(*Module, MAM);
 
         if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run
@@ -88,41 +99,6 @@ void RunEntry(){
         }
 
         auto *Expr = (double(*)())EntrySym->getAddress();
-
-        fprintf(stderr, "Evaluated to %f\n", Expr());
-    }
-}
-
-
-void HandleFunctionDefinition() {
-    if(auto Function = parser->ParseFunction()){
-        if(auto FunctionIR = Function->codegen()){
-            FunctionIR->print(llvm::errs());
-            fprintf(stderr, "\n");
-        }
-    }
-    else{
-        parser->getNextToken();
-    }
-}
-
-void HandleExternDeclaration() {
-    if(auto Extern = parser->ParseExtern()){
-        if(auto ExternIR = Extern->codegen()){
-            ExternIR->print(llvm::errs());
-            fprintf(stderr, "\n");
-        }
-    }
-    else{
-        parser->getNextToken();
-    }
-}
-
-void HandleExpression() {
-    if(auto Expression = parser->ParseExpression()){
-        TopLevelExpressions.push_back(std::move(Expression));
-    }
-    else{
-        parser->getNextToken();
+        exit(Expr());
     }
 }

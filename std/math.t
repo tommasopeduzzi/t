@@ -47,3 +47,18 @@ def tan(number x) -> number
     return result
 end
 
+def sqrt(number x) -> number
+    var number a = x/2
+    for i = 0, i < 3000, 1 then
+        a = (a + x/a)/2
+    end
+    return a
+end
+
+def root(number x, number k) -> number
+    var number a = x/k
+    for i = 0, i < 3000, 1 then
+        a = ((k-1)*a + (x/power(a,k-1)))/k
+    end
+    return a
+end

@@ -5,8 +5,10 @@ Small compiler for my own programming language called t.
 This project is mostly based on the official llvm tutorial with some modifications made to it.
 
 Currently known bugs/problems:
-- [ ] If there is no terminator instruction in the outermost layer of a function, the JIT will crash
-- [ ] Lexer currently doesn't have a way to handle negative numbers and multiple characacter operators
+- If there is no terminator instruction in the outermost layer of a function, the JIT will crash
+- Lexer currently doesn't have a way to handle multiple character operators
+- The string type is just a pointer to the first character
+- It's currently a pain in the ass to add new core functions and they have to be specifically declared as external in the code
 
 TODO:
 - [x] Functions
@@ -18,7 +20,6 @@ TODO:
   - [x] For-Loops
   - [x] While-Loops
 - [x] Importing of other files
-- [ ] Global Variables
 - [x] Types
   - [x] Numbers
   - [x] Strings
