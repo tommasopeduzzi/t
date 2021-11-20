@@ -26,7 +26,7 @@ TODO:
   - [x] Booleans
   - [ ] (Lists)
 - [ ] Standard Library
-  - [ ] Call into C-Functions
+  - [x] Call into C-Functions
   - [ ] Math
   - [ ] String
   - [ ] IO

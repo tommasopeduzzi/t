@@ -61,6 +61,8 @@ void RunEntry(){
         jd.define(s);
         s = llvm::orc::absoluteSymbols({{ Mangle("printAscii"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printAscii), llvm::JITSymbolFlags::Exported)}});
         jd.define(s);
+        s = llvm::orc::absoluteSymbols({{ Mangle("printNumber"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printNumber), llvm::JITSymbolFlags::Exported)}});
+        jd.define(s);
 
         llvm::LoopAnalysisManager LAM;
         llvm::FunctionAnalysisManager FAM;

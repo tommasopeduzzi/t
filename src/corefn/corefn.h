@@ -7,5 +7,6 @@
 
 extern "C" double printString(const char* str);
 extern "C" double printAscii(double c);
+extern "C" double printNumber(double number);
 
 #endif //T_COREFN_H
