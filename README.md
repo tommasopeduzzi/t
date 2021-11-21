@@ -34,3 +34,4 @@ TODO:
   - [ ] Time
 - [ ] Better Errors
 - [ ] Documentation
+- [ ] Type checking

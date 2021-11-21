@@ -124,6 +124,7 @@ std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
             return ParseString();
         default:
             LogErrorLineNo("Unexpected Token");
+            getNextToken();
             return nullptr;
     }
 }
