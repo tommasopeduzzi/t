@@ -4,8 +4,9 @@
 
 #include "nodes.h"
 #include "error.h"
-#include "llvm/IR/Verifier.h"
 #include <map>
+#include <llvm/IR/IRBuilder.h>
+
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
@@ -107,7 +108,7 @@ llvm::Value *VariableDefinition::codegen(){
 }
 
 llvm::Value *BinaryExpression::codegen(){
-    if(Op == '='){
+    if(Op == "="){
         auto L = static_cast<Variable *>(LHS.get());
         if(!L)
             return LogError("Expected variable.");
@@ -129,26 +130,26 @@ llvm::Value *BinaryExpression::codegen(){
 
     if(!L || !R)
         return LogError("Error Parsing BinaryExpression");
-    switch(Op){
-        case '+':
-            return Builder->CreateFAdd(L, R);
-        case '-':
-            return Builder->CreateFSub(L, R);
-        case '*':
-            return Builder->CreateFMul(L, R);
-        case '/':
-            return Builder->CreateFDiv(L, R);
-        case '<':
-            return Builder->CreateFCmpULT(L,R);
-            return Builder->CreateUIToFP(L,  // Convert from integer to float
-                                        llvm::Type::getDoubleTy(*Context));
-        case '>':
-            return Builder->CreateFCmpUGT(L,R);
-            return Builder->CreateUIToFP(L,  // Convert from integer to float
-                                        llvm::Type::getDoubleTy(*Context));
-        default:
-            return LogError("Unrecognized Operator.");
-    }
+    if(Op == "+")
+        return Builder->CreateAdd(L, R);
+    else if(Op == "-")
+        return Builder->CreateSub(L, R);
+    else if (Op == "*")
+        return Builder->CreateMul(L, R);
+    else if (Op == "/")
+        return Builder->CreateFDiv(L, R);
+    else if (Op == "<")
+        return Builder->CreateFCmpULT(L,R);
+    else if (Op == ">")
+        return Builder->CreateFCmpUGT(L,R);
+    else if (Op == ">=")
+        return Builder->CreateFCmpUGE(L,R);
+    else if (Op == "<=")
+        return Builder->CreateFCmpULE(L,R);
+    else if (Op == "==")
+        return Builder->CreateFCmpOEQ(L,R);
+    else
+        return LogError("Unrecognized Operator.");
 }
 
 llvm::Value *Return::codegen() {

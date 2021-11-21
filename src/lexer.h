@@ -5,28 +5,37 @@
 #include <string>
 #include <fstream>
 #include <set>
+#include <variant>
 
 #ifndef T_LEXER_H
 #define T_LEXER_H
 
-enum Tokens{
-    eof = -1,
-    def = -2,
-    ext = -3,
-    identifier = -4,
-    number = -5,
-    ret = -6,
-    end = -7,
-    var = -8,
-    if_tok = -9,
-    else_tok = -10,
-    then_tok = -11,
-    for_tok = -12,
-    while_tok = -13,
-    import_tok = -14,
-    string = -15,
-    type = -16,
-    tok_bool = -17
+enum class TokenType{
+    EOF_TOKEN,
+    DEF_TOKEN,
+    IMPORT_TOKEN,
+    EXTERN_TOKEN,
+    VAR_TOKEN,
+    RETURN_TOKEN,
+    IF_TOKEN,
+    ELSE_TOKEN,
+    FOR_TOKEN,
+    WHILE_TOKEN,
+    THEN_TOKEN,
+    END_TOKEN,
+    TYPE,
+    OPERATOR,
+    IDENTIFIER,
+    NUMBER,
+    STRING,
+    BOOL,
+    UNDEFINED,
+    ERROR,
+};
+
+struct Token{
+    TokenType type;
+    std::variant<std::string, double, bool> value;
 };
 
 const std::set<std::string> Types {
@@ -35,25 +44,33 @@ const std::set<std::string> Types {
     "string"
 };
 
+const std::set<std::string> Operators{
+    "=",
+    "+",
+    "-",
+    ">",
+    "<",
+    ">=",
+    "<=",
+    "==",
+};
+
 class Lexer {
 public:
     Lexer(std::string filePath);
-    double NumberValue;
-    bool BoolValue;
-    std::string StringValue;
-    std::string Identifier;
-    std::string Type;
     char LastChar = ' ';
-    std::string filePath;
     std::ifstream file;
     int lineNo;
-    int getToken();
+    Token getToken();
     char getChar();
     bool isWhiteSpace(char c);
     bool isAlpha(char c);
     bool isAlphaNum(char c);
     bool isDigit(char c);
 };
+
+bool operator== (const Token& lhs, const char c);
+bool operator!= (const Token& lhs, const char c);
 
 const std::string digitRegex = "[0-9]";
 const std::string alphaNumRegex = "[a-zA-Z0-9]";
