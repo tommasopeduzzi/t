@@ -131,17 +131,23 @@ llvm::Value *BinaryExpression::codegen(){
     if(!L || !R)
         return LogError("Error Parsing BinaryExpression");
     if(Op == "+")
-        return Builder->CreateFAdd(L, R);
+        return Builder->CreateAdd(L, R);
     else if(Op == "-")
-        return Builder->CreateFSub(L, R);
+        return Builder->CreateSub(L, R);
     else if (Op == "*")
-        return Builder->CreateFMul(L, R);
+        return Builder->CreateMul(L, R);
     else if (Op == "/")
         return Builder->CreateFDiv(L, R);
     else if (Op == "<")
         return Builder->CreateFCmpULT(L,R);
     else if (Op == ">")
         return Builder->CreateFCmpUGT(L,R);
+    else if (Op == ">=")
+        return Builder->CreateFCmpUGE(L,R);
+    else if (Op == "<=")
+        return Builder->CreateFCmpULE(L,R);
+    else if (Op == "==")
+        return Builder->CreateFCmpOEQ(L,R);
     else
         return LogError("Unrecognized Operator.");
 }

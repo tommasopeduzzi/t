@@ -55,7 +55,7 @@ Token Lexer::getToken(){
         else if (Token == "var")
             return {TokenType::VAR_TOKEN};
         else if (Token == "if")
-            return {TokenType::IMPORT_TOKEN};
+            return {TokenType::IF_TOKEN};
         else if (Token == "else")
             return {TokenType::ELSE_TOKEN};
         else if (Token == "then")
@@ -90,17 +90,6 @@ Token Lexer::getToken(){
         return {TokenType::STRING, Value};
     }
 
-    // Handle comments
-    if(LastChar == '#'){
-        do{
-            LastChar = getChar();
-        } while(LastChar != EOF && LastChar != '\n' && LastChar != '\r');
-
-        if(LastChar != EOF){
-            return getToken();
-        }
-    }
-
     // Handle Digits
     if(isDigit(LastChar) || LastChar == '.'){
         bool decimal = false;
@@ -120,6 +109,27 @@ Token Lexer::getToken(){
 
         double Value = strtod(NumberString.c_str(), 0);
         return {TokenType::NUMBER, Value};
+    }
+
+    // Handle comments
+    if(LastChar == '#'){
+        do{
+            LastChar = getChar();
+        } while(LastChar != EOF && LastChar != '\n' && LastChar != '\r');
+
+        if(LastChar != EOF){
+            return getToken();
+        }
+    }
+
+    if(Operators.find(std::string(1, LastChar)) != Operators.end()){
+        std::string op = std::string(1, LastChar);
+        LastChar = getChar();
+        if(Operators.find(op + std::string(1, LastChar)) != Operators.end()){
+            op += LastChar;
+            LastChar = getChar();
+        }
+        return {TokenType::OPERATOR, op};
     }
 
     // Handle EOF

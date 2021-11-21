@@ -24,6 +24,7 @@ enum class TokenType{
     THEN_TOKEN,
     END_TOKEN,
     TYPE,
+    OPERATOR,
     IDENTIFIER,
     NUMBER,
     STRING,
@@ -41,6 +42,17 @@ const std::set<std::string> Types {
     "number",
     "bool",
     "string"
+};
+
+const std::set<std::string> Operators{
+    "=",
+    "+",
+    "-",
+    ">",
+    "<",
+    ">=",
+    "<=",
+    "==",
 };
 
 class Lexer {
