@@ -63,6 +63,8 @@ void RunEntry(){
         jd.define(s);
         s = llvm::orc::absoluteSymbols({{ Mangle("printNumber"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printNumber), llvm::JITSymbolFlags::Exported)}});
         jd.define(s);
+        s = llvm::orc::absoluteSymbols({{ Mangle("input"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&input), llvm::JITSymbolFlags::Exported)}});
+        jd.define(s);
 
         llvm::LoopAnalysisManager LAM;
         llvm::FunctionAnalysisManager FAM;
@@ -82,7 +84,7 @@ void RunEntry(){
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::PromotePass()));
-        //MPM.addPass(llvm::PrintModulePass());
+        MPM.addPass(llvm::PrintModulePass());
         MPM.run(*Module, MAM);
 
         if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run

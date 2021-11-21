@@ -358,7 +358,7 @@ llvm::Value *Extern::codegen() {
         for (int i = 0; i < Arguments.size();i++){
             ArgumentTypes[i] = GetType(Arguments[i].first);
         }
-        llvm::FunctionType *FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*Context), ArgumentTypes, false);
+        llvm::FunctionType *FunctionType = llvm::FunctionType::get(GetType(Type), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {

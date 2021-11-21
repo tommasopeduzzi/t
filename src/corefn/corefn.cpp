@@ -4,8 +4,9 @@
 
 #include "corefn.h"
 #include <iostream>
+#include <tcl.h>
 
-extern "C" double printString(const char* str){
+extern "C"  double printString(const char* str){
     std::cout << str;
     return 0;
 }
@@ -18,4 +19,10 @@ extern "C" double printAscii(double c){
 extern "C" double printNumber(double number){
     std::cout << number;
     return 0;
+}
+
+extern "C" char *input(){
+    std::string str;
+    std::getline(std::cin, str);
+    return strdup(str.c_str());
 }
