@@ -9,20 +9,20 @@
 #include "nodes.h"
 #include "lexer.h"
 
-static std::map<char, int> OperatorPrecedence{
-        {'=',1},
-        {'<',10},
-        {'>', 10},
-        {'+', 20},
-        {'-', 20},
-        {'/', 30},
-        {'*', 30},
+static std::map<std::string, int> OperatorPrecedence{
+        {"=",1},
+        {"<",10},
+        {">", 10},
+        {"+", 20},
+        {"-", 20},
+        {"/", 30},
+        {"*", 30},
 };
 
 class Parser{
 public:
-    int CurrentToken;
-    int getNextToken();
+    Token CurrentToken;
+    Token getNextToken();
     std::unique_ptr<Lexer> lexer;
     void ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
               std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles);
@@ -47,6 +47,6 @@ public:
     std::vector<std::unique_ptr<Node>> ParseArguments();
     std::vector<std::pair<std::string,std::string>> ParseArgumentDefinition();
 };
-int getOperatorPrecedence(char CurrentToken);
+int getOperatorPrecedence(std::string Operator);
 
 #endif //T_PARSER_H

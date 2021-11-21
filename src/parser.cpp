@@ -19,18 +19,18 @@ void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> 
     ImportedFiles.insert(filePath);
     getNextToken();     // get first token
     while (true) {
-        switch (CurrentToken) {
-            case eof:
+        switch (CurrentToken.type) {
+            case TokenType::EOF_TOKEN:
                 return;
-            case def:
+            case TokenType::DEF_TOKEN:
                 FunctionDeclarations.push_back(std::move(
                         CheckForNull(std::move(ParseFunction()))));
                 break;
-            case ext:
+            case TokenType::EXTERN_TOKEN:
                 FunctionDeclarations.push_back(std::move(
                         CheckForNull(std::move(ParseExtern()))));
                 break;
-            case import_tok:
+            case TokenType::IMPORT_TOKEN:
                 HandleImport(FunctionDeclarations, TopLevelExpressions, ImportedFiles);
                 break;
             default:
@@ -44,11 +44,11 @@ void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> 
 void Parser::HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
                           std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles) {
     getNextToken();
-    if (CurrentToken != string) {
+    if (CurrentToken.type != TokenType::STRING) {
         std::cerr << "Expected string after import!\n";
         return;
     }
-    std::string fileName = lexer->StringValue;
+    std::string fileName = std::get<std::string>(CurrentToken.value);
     getNextToken();     // eat string
     auto parser = std::make_unique<Parser>();
     if (ImportedFiles.find(fileName) == ImportedFiles.end()) {
@@ -56,7 +56,7 @@ void Parser::HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclaratio
     }
 }
 
-int Parser::getNextToken(){
+Token Parser::getNextToken(){
     return CurrentToken = lexer->getToken();
 }
 
@@ -67,18 +67,21 @@ std::unique_ptr<Node> Parser::ParseExpression() {
         return nullptr;
     }
 
-
     return ParseBinaryOperatorRHS(0, std::move(LHS));
 }
 
 std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
     while(true){
-        int TokenPrecedence = getOperatorPrecedence(CurrentToken);
+        if(!std::holds_alternative<std::string>(CurrentToken.value)){
+            return LHS; // it's not a binary operator, because it's value is not string
+        }
+
+        std::string Operator = std::get<std::string>(CurrentToken.value);
+        int TokenPrecedence = getOperatorPrecedence(Operator);
+
         if(TokenPrecedence < expressionPrecedence){
             return LHS; // It's not a binary expression, just return the left side.
         }
-
-        int Operator = CurrentToken;
 
         // Parse right side:
         getNextToken();
@@ -87,11 +90,12 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
         if(!RHS){
             return nullptr;
         }
-
-        if(TokenPrecedence < getOperatorPrecedence(CurrentToken)){
-            RHS = ParseBinaryOperatorRHS(TokenPrecedence + 1, std::move(RHS));
-            if(!RHS)
-                return nullptr;
+        if(std::holds_alternative<std::string>(CurrentToken.value)){
+            if(TokenPrecedence < getOperatorPrecedence(std::get<std::string>(CurrentToken.value))){
+                RHS = ParseBinaryOperatorRHS(TokenPrecedence + 1, std::move(RHS));
+                if(!RHS)
+                    return nullptr;
+            }
         }
         // Merge left and right
         LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS));
@@ -99,28 +103,28 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
 }
 
 std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
-    switch(this->CurrentToken){
-        case identifier:
+    if(CurrentToken == '-')
+        return ParseNegative();
+    else if (CurrentToken == '(')
+        return ParseParentheses();
+    switch(CurrentToken.type){
+        case TokenType::IDENTIFIER:
             return ParseIdentifier();
-        case number:
+        case TokenType::NUMBER:
             return ParseNumber();
-        case '(':
-            return ParseParentheses();
-        case ret:
+        case TokenType::RETURN_TOKEN:
             return ParseReturnValue();
-        case var:
+        case TokenType::VAR_TOKEN:
             return ParseVariableDeclaration();
-        case if_tok:
+        case TokenType::IF_TOKEN:
             return ParseIfStatement();
-        case for_tok:
+        case TokenType::FOR_TOKEN:
             return ParseForLoop();
-        case while_tok:
+        case TokenType::WHILE_TOKEN:
             return ParseWhileLoop();
-        case '-':
-            return ParseNegative();
-        case tok_bool:
+        case TokenType::BOOL:
             return ParseBool();
-        case string:
+        case TokenType::STRING:
             return ParseString();
         default:
             LogErrorLineNo("Unexpected Token");
@@ -132,11 +136,11 @@ std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
 std::unique_ptr<Node> Parser::ParseFunction() {
     getNextToken();     // eat 'def'
 
-    if(CurrentToken != identifier){
+    if(CurrentToken.type != TokenType::IDENTIFIER){
         LogErrorLineNo("Expected Identifier");
         return nullptr;
     }
-    std::string Name = lexer->Identifier;
+    std::string Name = std::get<std::string>(CurrentToken.value);
 
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
@@ -158,15 +162,15 @@ std::unique_ptr<Node> Parser::ParseFunction() {
 
     getNextToken();     // eat '>'
 
-    if(CurrentToken != type){
+    if(CurrentToken.type != TokenType::TYPE){
         LogErrorLineNo("Expected type!");
         return nullptr;
     }
-    auto Type = lexer->Type;
+    auto Type = std::get<std::string>(CurrentToken.value);
     getNextToken();     // eat type
     std::vector<std::unique_ptr<Node>> Expressions;
 
-    while (CurrentToken != end){
+    while (CurrentToken.type != TokenType::END_TOKEN){
         auto Expression = ParseExpression();
 
         if(!Expression)     // error parsing expression, return
@@ -183,11 +187,11 @@ std::unique_ptr<Node> Parser::ParseFunction() {
 std::unique_ptr<Node> Parser::ParseExtern(){
     getNextToken(); // eat 'extern'
 
-    if(CurrentToken != identifier){
+    if(CurrentToken.type != TokenType::IDENTIFIER){
         LogErrorLineNo("Expected Identifier");
         return nullptr;
     }
-    std::string Name = lexer->Identifier;
+    std::string Name = std::get<std::string>(CurrentToken.value);
     getNextToken(); // eat Identifier
     if(CurrentToken != '('){
         LogErrorLineNo("expected Parentheses");
@@ -207,11 +211,11 @@ std::unique_ptr<Node> Parser::ParseExtern(){
 
     getNextToken();     // eat '>'
 
-    if(CurrentToken != type){
+    if(CurrentToken.type != TokenType::TYPE){
         LogErrorLineNo("Expected type!");
         return nullptr;
     }
-    auto Type = lexer->Type;
+    auto Type = std::get<std::string>(CurrentToken.value);
     getNextToken();     // eat type
     return std::make_unique<Extern>(Name, Type, Arguments);
 }
@@ -223,13 +227,14 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
     if(!Condition)
         return nullptr;
 
-    if(CurrentToken != then_tok){
+    if(CurrentToken.type != TokenType::THEN_TOKEN){
         LogErrorLineNo("Expected 'then' after if condition. ");
         return nullptr;
     }
     getNextToken();     // eat 'then'
     std::vector<std::unique_ptr<Node>> Then, Else;
-    while(CurrentToken != end && CurrentToken != else_tok){
+    while(CurrentToken.type != TokenType::END_TOKEN &&
+            CurrentToken.type != TokenType::ELSE_TOKEN){
         auto Expression = ParseExpression();
 
         if(!Expression)
@@ -237,9 +242,9 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
 
         Then.push_back(std::move(Expression));
     }
-    if(CurrentToken == else_tok){
+    if(CurrentToken.type == TokenType::ELSE_TOKEN){
         getNextToken();     //eat 'else'
-        while(CurrentToken != end){
+        while(CurrentToken.type != TokenType::END_TOKEN){
             auto Expression = ParseExpression();
 
             if(!Expression)
@@ -255,11 +260,11 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
 std::unique_ptr<Node> Parser::ParseForLoop(){
     getNextToken(); // eat "for"
 
-    if(CurrentToken != identifier){
+    if(CurrentToken.type != TokenType::IDENTIFIER){
         LogErrorLineNo("Expected identifier after 'for'!");
         return nullptr;
     }
-    std::string VariableName = lexer->Identifier;
+    std::string VariableName = std::get<std::string>(CurrentToken.value);
     getNextToken(); // eat Identifier
     std::unique_ptr<Node> StartValue;
     if(CurrentToken == '='){
@@ -285,13 +290,13 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
         if(!Step)
             return nullptr;
     }
-    if(CurrentToken != then_tok){
+    if(CurrentToken.type != TokenType::THEN_TOKEN){
         LogErrorLineNo("Expected 'then' after for loop declaration!");
         return nullptr;
     }
     getNextToken();     // eat 'then'
     std::vector<std::unique_ptr<Node>> Body;
-    while (CurrentToken != end){
+    while (CurrentToken.type != TokenType::END_TOKEN){
         auto Expression = ParseExpression();
 
         if(!Expression)
@@ -310,13 +315,13 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
     if(!Condition)
         return nullptr;
 
-    if(CurrentToken != then_tok){
+    if(CurrentToken.type != TokenType::THEN_TOKEN){
         LogErrorLineNo("Expected 'then' after while declaration");
         return nullptr;
     }
     getNextToken();     // eat 'then'
     std::vector<std::unique_ptr<Node>> Body;
-    while (CurrentToken != end){
+    while (CurrentToken.type != TokenType::END_TOKEN){
         auto Expression = ParseExpression();
         if(!Expression)
             return nullptr;
@@ -329,18 +334,18 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
 std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     getNextToken(); //eat "var"
 
-    if(CurrentToken != type){
+    if(CurrentToken.type != TokenType::TYPE){
         LogErrorLineNo("Expected type after 'var'!");
         return nullptr;
     }
-    auto Type = lexer->Identifier;
+    auto Type = std::get<std::string>(CurrentToken.value);
     getNextToken(); //eat type
-    if(CurrentToken != identifier){
+    if(CurrentToken.type != TokenType::IDENTIFIER){
         LogErrorLineNo("Expected identifier after type!");
         return nullptr;
     }
 
-    auto Name = lexer->Identifier;
+    auto Name = std::get<std::string>(CurrentToken.value);
     getNextToken();     // eat identifier
 
     if(CurrentToken != '='){
@@ -366,19 +371,19 @@ std::unique_ptr<Node> Parser::ParseNegative() {
 }
 
 std::unique_ptr<Node> Parser::ParseNumber(){
-    auto number = std::make_unique<Number>(lexer->NumberValue);
+    auto number = std::make_unique<Number>(std::get<double>(CurrentToken.value));
     getNextToken(); // eat number
     return std::move(number);
 }
 
 std::unique_ptr<Node> Parser::ParseBool(){
-    auto boolNode = std::make_unique<Bool>(lexer->BoolValue);
+    auto boolNode = std::make_unique<Bool>(std::get<bool>(CurrentToken.value));
     getNextToken(); // eat bool
     return std::move(boolNode);
 }
 
 std::unique_ptr<Node> Parser::ParseString(){
-    auto stringNode = std::make_unique<String>(lexer->StringValue);
+    auto stringNode = std::make_unique<String>(std::get<std::string>(CurrentToken.value));
     getNextToken(); // eat string
     return std::move(stringNode);
 }
@@ -401,7 +406,7 @@ std::unique_ptr<Node> Parser::ParseParentheses(){
 }
 
 std::unique_ptr<Node> Parser::ParseIdentifier(){
-    std::string Name = lexer->Identifier;
+    std::string Name = std::get<std::string>(CurrentToken.value);
 
     getNextToken(); // eat identifier
 
@@ -462,14 +467,15 @@ std::vector<std::pair<std::string,std::string>> Parser::ParseArgumentDefinition(
         getNextToken(); // eat ')' in case 0 of arguments.
         return Arguments;
     }
-    while(CurrentToken == type){
-        std::string Type = lexer->Identifier;
+    while(CurrentToken.type == TokenType::TYPE){
+        std::string Type = std::get<std::string>(CurrentToken.value);
         getNextToken(); // eat type
-        if(CurrentToken != identifier){
+        if(CurrentToken.type != TokenType::IDENTIFIER){
             LogErrorLineNo("Expected identifier after type!");
             return {};
         }
-        Arguments.push_back(std::make_pair(Type, lexer->Identifier));
+        auto Name = std::get<std::string>(CurrentToken.value);
+        Arguments.push_back(std::make_pair(Type, Name));
         getNextToken();     // eat identifier
         if(CurrentToken == ',' ){
             getNextToken(); // eat ',' and continue
@@ -487,8 +493,8 @@ std::vector<std::pair<std::string,std::string>> Parser::ParseArgumentDefinition(
     return Arguments;
 }
 
-int getOperatorPrecedence(char CurrentToken){
-    if(!isascii(CurrentToken) || OperatorPrecedence[CurrentToken] <= 0)
+int getOperatorPrecedence(std::string Operator){
+    if(OperatorPrecedence[Operator] <= 0)
         return -1;
-    return OperatorPrecedence[CurrentToken];
+    return OperatorPrecedence[Operator];
 }

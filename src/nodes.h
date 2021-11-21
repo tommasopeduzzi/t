@@ -8,25 +8,7 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Transforms/InstCombine/InstCombine.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Scalar/GVN.h"
-#include <llvm/ExecutionEngine/Orc/LLJIT.h>
-#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
+#include <llvm/IR/Value.h>
 
 class Node{
 public:
@@ -79,11 +61,11 @@ public:
 };
 
 class BinaryExpression : public Node{
-    char Op;
+    std::string Op;
     std::unique_ptr<Node> LHS, RHS;
 
 public:
-    BinaryExpression(char op, std::unique_ptr<Node> lhs,
+    BinaryExpression(std::string op, std::unique_ptr<Node> lhs,
                             std::unique_ptr<Node> rhs):
                             Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
     virtual llvm::Value *codegen();

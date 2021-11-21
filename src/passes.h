@@ -4,6 +4,8 @@
 
 #ifndef T_PASSES_H
 #define T_PASSES_H
+
+#include <llvm/IR/PassManager.h>
 #include "nodes.h"
 namespace llvm {
 

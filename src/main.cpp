@@ -1,22 +1,24 @@
 #include <memory>
+#include <iostream>
+#include <llvm/ExecutionEngine/Orc/Core.h>
+#include <llvm/ExecutionEngine/Orc/Mangling.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/Scalar/SimplifyCFG.h>
+#include <llvm/Transforms/Utils/Mem2Reg.h>
+#include <llvm/ADT/Statistic.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/IR/Verifier.h>
+#include "corefn/corefn.h"
+#include "passes.h"
 #include "parser.h"
 #include "nodes.h"
 #include "lexer.h"
 #include "codegen.h"
-#include <iostream>
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Transforms/Scalar/SimplifyCFG.h"
-#include "passes.h"
-#include "llvm/Transforms/Utils/Mem2Reg.h"
-#include "llvm/ADT/Statistic.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/IR/IRPrintingPasses.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/TargetRegistry.h"
-#include "corefn/corefn.h"
+
 
 void RunEntry();
 

@@ -7,8 +7,15 @@
 #include "error.h"
 #include "lexer.h"
 
+bool operator== (const Token& lhs, const char c){
+    return std::holds_alternative<std::string>(lhs.value) && std::get<std::string>(lhs.value) == std::string(1,c);
+}
+
+bool operator!= (const Token& lhs, const char c){
+    return !(lhs == c);
+}
+
 Lexer::Lexer(std::string filePath){
-    this->filePath = filePath;
     file.open(filePath);
     lineNo = 1;
 }
@@ -24,7 +31,7 @@ char Lexer::getChar(){
     return c;
 }
 
-int Lexer::getToken(){
+Token Lexer::getToken(){
     // Eat up Whitespace
     while(isWhiteSpace(LastChar)){
         LastChar = getChar();
@@ -32,58 +39,55 @@ int Lexer::getToken(){
 
     // Handle Identifiers
     if(isAlpha(LastChar)){
-        Identifier = "";
-        Identifier += LastChar;
+        std::string Token = "";
+        Token += LastChar;
         while(isAlphaNum(LastChar = getChar()))
-            Identifier += LastChar;
+            Token += LastChar;
 
-        if (Identifier == "def")
-            return def;
-        else if (Identifier == "extern")
-            return ext;
-        else if (Identifier == "return")
-            return ret;
-        else if (Identifier == "end")
-            return end;
-        else if (Identifier == "var")
-            return var;
-        else if (Identifier == "if")
-            return if_tok;
-        else if (Identifier == "else")
-            return else_tok;
-        else if (Identifier == "then")
-            return then_tok;
-        else if (Identifier == "for")
-            return for_tok;
-        else if (Identifier == "while")
-            return while_tok;
-        else if (Identifier == "import")
-            return import_tok;
-        else if (Types.find(Identifier) != Types.end()){
-            Type = Identifier;
-            return type;
+        if (Token == "def")
+            return {TokenType::DEF_TOKEN};
+        else if (Token == "extern")
+            return {TokenType::EXTERN_TOKEN};
+        else if (Token == "return")
+            return {TokenType::RETURN_TOKEN};
+        else if (Token == "end")
+            return {TokenType::END_TOKEN};
+        else if (Token == "var")
+            return {TokenType::VAR_TOKEN};
+        else if (Token == "if")
+            return {TokenType::IMPORT_TOKEN};
+        else if (Token == "else")
+            return {TokenType::ELSE_TOKEN};
+        else if (Token == "then")
+            return {TokenType::THEN_TOKEN};
+        else if (Token == "for")
+            return {TokenType::FOR_TOKEN};
+        else if (Token == "while")
+            return {TokenType::WHILE_TOKEN};
+        else if (Token == "import")
+            return {TokenType::IMPORT_TOKEN};
+        else if (Types.find(Token) != Types.end()){
+            return {TokenType::TYPE, Token};
         }
-        else if(Identifier == "true"){
-            BoolValue = true;
-            return tok_bool;
+        else if(Token == "true"){
+            return {TokenType::BOOL, true};
         }
-        else if(Identifier == "false"){
-            BoolValue = false;
-            return tok_bool;
+        else if(Token == "false"){
+            return {TokenType::BOOL, false};
         }
         else
-            return identifier;
+            return {TokenType::IDENTIFIER, Token};
     }
 
     if(LastChar == '"'){
-        StringValue = "";
+        std::string Value = "";
         LastChar = getChar();
         while (LastChar != '"' && LastChar != EOF){
-            StringValue += LastChar;
+            Value += LastChar;
             LastChar = getChar();
         }
         LastChar = getChar();
-        return string;
+        return {TokenType::STRING, Value};
     }
 
     // Handle comments
@@ -106,7 +110,7 @@ int Lexer::getToken(){
             if(LastChar == '.'){
                 if(decimal){
                     LogError(&"Unexpected character: " [ LastChar] );     //TODO: Errors and shit
-                    return -1;
+                    return {TokenType::ERROR};
                 }
                 decimal = true;
             }
@@ -114,19 +118,19 @@ int Lexer::getToken(){
             LastChar = getChar();
         } while(isDigit(LastChar) || LastChar == '.');
 
-        NumberValue = strtod(NumberString.c_str(), 0);
-        return number;
+        double Value = strtod(NumberString.c_str(), 0);
+        return {TokenType::NUMBER, Value};
     }
 
     // Handle EOF
     if(LastChar == EOF){
-        return eof;
+        return {TokenType::EOF_TOKEN};
     }
 
     // If something else; returns ascii value
-    char returnValue = LastChar;
+    std::string returnValue = std::string(1, LastChar);
     LastChar = getChar();
-    return int (returnValue);
+    return {TokenType::UNDEFINED, returnValue};
 }
 
 bool Lexer::isDigit(char c) {

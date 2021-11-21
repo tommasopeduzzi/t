@@ -2,8 +2,6 @@
 // Created by tommasopeduzzi on 12/08/2021.
 //
 
-#include "lexer.h"
-#include "nodes.h"
 #include "error.h"
 
 void LogErrorLineNo(const std::string message){
