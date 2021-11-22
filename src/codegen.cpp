@@ -131,11 +131,11 @@ llvm::Value *BinaryExpression::codegen(){
     if(!L || !R)
         return LogError("Error Parsing BinaryExpression");
     if(Op == "+")
-        return Builder->CreateAdd(L, R);
+        return Builder->CreateFAdd(L, R);
     else if(Op == "-")
-        return Builder->CreateSub(L, R);
+        return Builder->CreateFSub(L, R);
     else if (Op == "*")
-        return Builder->CreateMul(L, R);
+        return Builder->CreateFMul(L, R);
     else if (Op == "/")
         return Builder->CreateFDiv(L, R);
     else if (Op == "<")

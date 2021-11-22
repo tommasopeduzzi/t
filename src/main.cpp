@@ -12,6 +12,7 @@
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/IR/IRPrintingPasses.h>
 #include "corefn/corefn.h"
 #include "passes.h"
 #include "parser.h"

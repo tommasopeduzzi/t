@@ -6,6 +6,7 @@ def sin(number x) -> number
     end
     return result
 end
+
 def factorial(number n) -> number
     var number result = 1
     for i = 1, i < n, 1 then
@@ -21,7 +22,6 @@ def power(number a, number x) -> number
     end
     return result
 end
-
 def max(number a, number b) -> number
     if a > b then
         return a
