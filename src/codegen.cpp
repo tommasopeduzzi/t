@@ -184,7 +184,8 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-    Builder->CreateBr(After);
+    if(Builder->GetInsertBlock()->getTerminator() == nullptr)
+        Builder->CreateBr(After);
     DestroyScope();
 
     Function->getBasicBlockList().push_back(ElseBlock);
@@ -196,11 +197,12 @@ llvm::Value *IfExpression::codegen() {
         if(!ExpressionIR)
             return nullptr;
     }
-    Builder->CreateBr(After);
+    if(Builder->GetInsertBlock()->getTerminator() == nullptr)
+        Builder->CreateBr(After);
     DestroyScope();
+
     Function->getBasicBlockList().push_back(After);
     Builder->SetInsertPoint(After);
-
     return conditionInstruction;
 }
 

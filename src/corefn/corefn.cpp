@@ -4,7 +4,6 @@
 
 #include "corefn.h"
 #include <iostream>
-#include <tcl.h>
 
 extern "C"  double printString(const char* str){
     std::cout << str;
