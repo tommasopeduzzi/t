@@ -27,7 +27,7 @@ var string z = "Hello World!"
 Conditials in t are in the form `if-else` statements.
 A If-Else-Statement is structured as follows: 
 <pre>
-<b>if</b> condition <b>then</b> 
+<b>if</b> condition <b>do</b> 
   statement(s) 
 <i><b>else</b> 
   statements(s)</i> 
@@ -93,7 +93,7 @@ Here is an example for a function that checks if a number is approximately equal
 ```
 def approx(number x, number target) -> bool
    if target-0.5 <= x then
-       if target + 0.5 >= x  then
+       if target + 0.5 >= x  do
            return true
        end
    else

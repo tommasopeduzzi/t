@@ -150,17 +150,12 @@ std::unique_ptr<Node> Parser::ParseFunction() {
     getNextToken();     // eat '('
     auto Arguments = ParseArgumentDefinition();
 
-    if (CurrentToken != '-'){
-        LogErrorLineNo("Expected '->'!");
-        return nullptr;
-    }
-    getNextToken();     // eat '-'
-    if (CurrentToken != '>'){
+    if (CurrentToken.type != TokenType::OPERATOR) {
         LogErrorLineNo("Expected '->'!");
         return nullptr;
     }
 
-    getNextToken();     // eat '>'
+    getNextToken();     // eat '->'
 
     if(CurrentToken.type != TokenType::TYPE){
         LogErrorLineNo("Expected type!");
@@ -199,17 +194,11 @@ std::unique_ptr<Node> Parser::ParseExtern(){
     }
     getNextToken(); // eats '('
     auto Arguments = ParseArgumentDefinition();
-    if (CurrentToken != '-'){
+    if (CurrentToken.type != TokenType::OPERATOR) {
         LogErrorLineNo("Expected '->'!");
         return nullptr;
     }
-    getNextToken();     // eat '-'
-    if (CurrentToken != '>'){
-        LogErrorLineNo("Expected '->'!");
-        return nullptr;
-    }
-
-    getNextToken();     // eat '>'
+    getNextToken();     // eat '->'
 
     if(CurrentToken.type != TokenType::TYPE){
         LogErrorLineNo("Expected type!");

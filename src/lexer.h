@@ -51,6 +51,7 @@ const std::set<std::string> Operators{
     "-",
     ">",
     "<",
+    "->",
     ">=",
     "<=",
     "==",
