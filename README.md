@@ -1,14 +1,17 @@
 # The t Programming Language
-(Don't judge the name, I'm not creative)
 
-Small compiler for my own programming language called t.
-This project is mostly based on the official llvm tutorial with some modifications made to it.
+I was curious Because I want the language to be more or less platform-independent and because of the ease-of-use, the compiler uses llvm as its backend.
+The [Kaleidoscope Tutorial](https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/) served as a basis for this project. I added features to it and used my own syntax.
+My goal with this language is to be able to teach others how to solve problems instead of writing code, so it should be as simple as possible.
 
-Currently known bugs/problems:
+## Documenation
+You can find the docs in the [Docs.md](docs/docs.md) file.
+
+##Currently known bugs/problems:
 - If there is no terminator instruction in the outermost layer of a function, the JIT will crash
 - It's currently a bit of a manual a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
 
-TODO:
+##TODO:
 - [x] Functions
 - [x] Calls
 - [x] Mutable Variables
