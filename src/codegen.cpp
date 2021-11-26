@@ -31,6 +31,8 @@ llvm::Type *GetType(std::string Name){
         return llvm::Type::getDoubleTy(*Context);
     else if (Name == "bool")
         return llvm::Type::getInt1Ty(*Context);
+    else if (Name == "void")
+        return llvm::Type::getVoidTy(*Context);
     else
         return llvm::Type::getInt8PtrTy(*Context);
 }

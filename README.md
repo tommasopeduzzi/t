@@ -6,7 +6,7 @@ This project is mostly based on the official llvm tutorial with some modificatio
 
 Currently known bugs/problems:
 - If there is no terminator instruction in the outermost layer of a function, the JIT will crash
-- It's currently a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
+- It's currently a bit of a manual a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
 
 TODO:
 - [x] Functions

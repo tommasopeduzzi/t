@@ -41,7 +41,8 @@ struct Token{
 const std::set<std::string> Types {
     "number",
     "bool",
-    "string"
+    "string",
+    "void"
 };
 
 const std::set<std::string> Operators{

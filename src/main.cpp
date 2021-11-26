@@ -27,10 +27,6 @@ llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 std::set<std::string> ImportedFiles;
 
-union returnTypes {
-    double d;
-    char * charPtr;
-};
 void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
     auto &jd = JIT->getMainJITDylib();
     auto &dl = JIT->getDataLayout();

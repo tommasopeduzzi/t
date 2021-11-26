@@ -5,19 +5,16 @@
 #include "corefn.h"
 #include <iostream>
 
-extern "C"  double printString(const char* str){
+extern "C"  void printString(const char* str){
     std::cout << str;
-    return 0;
 }
 
-extern "C" double printAscii(double c){
+extern "C" void printAscii(double c){
     std::cout << (char)c;
-    return 0;
 }
 
-extern "C" double printNumber(double number){
+extern "C" void printNumber(double number){
     std::cout << number;
-    return 0;
 }
 
 extern "C" char *input(){

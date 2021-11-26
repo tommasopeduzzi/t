@@ -1,4 +1,4 @@
-extern printString(string str) -> number
-extern printAscii(number c) -> number
-extern printNumber(number c) -> number
+extern printString(string str) -> void
+extern printAscii(number c) -> void
+extern printNumber(number c) -> void
 extern input() -> string

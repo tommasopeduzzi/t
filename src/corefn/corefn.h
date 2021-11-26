@@ -5,9 +5,9 @@
 #ifndef T_COREFN_H
 #define T_COREFN_H
 
-extern "C" double printString(const char* str);
-extern "C" double printAscii(double c);
-extern "C" double printNumber(double number);
+extern "C" void printString(const char* str);
+extern "C" void printAscii(double c);
+extern "C" void printNumber(double number);
 extern "C" char *input();
 
 #endif //T_COREFN_H
