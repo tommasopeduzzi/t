@@ -227,7 +227,7 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
     if(!Condition)
         return nullptr;
 
-    if(CurrentToken.type != TokenType::THEN_TOKEN){
+    if(CurrentToken.type != TokenType::DO_TOKEN){
         LogErrorLineNo("Expected 'then' after if condition. ");
         return nullptr;
     }
@@ -290,7 +290,7 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
         if(!Step)
             return nullptr;
     }
-    if(CurrentToken.type != TokenType::THEN_TOKEN){
+    if(CurrentToken.type != TokenType::DO_TOKEN){
         LogErrorLineNo("Expected 'then' after for loop declaration!");
         return nullptr;
     }
@@ -315,7 +315,7 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
     if(!Condition)
         return nullptr;
 
-    if(CurrentToken.type != TokenType::THEN_TOKEN){
+    if(CurrentToken.type != TokenType::DO_TOKEN){
         LogErrorLineNo("Expected 'then' after while declaration");
         return nullptr;
     }

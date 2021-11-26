@@ -38,7 +38,7 @@ The Else Block is optional.
 If the condition evaluates to true, the first block of code is executed. If not, the second block of code is executed.
 Here an example:
 ```
-if approx(1, 1.2) then
+if approx(1, 1.2) do
   printString("1 is close to 1.2")
 else
   printString("1 is not close to 1.2")
@@ -48,7 +48,7 @@ end
 #### While-Loops
 While-Loops are structured as follows:
 <pre>
-<b>while</b> condition <b>then</b> 
+<b>while</b> condition <b>do</b> 
   statements(s) 
 <b>end</b>
 </pre>
@@ -62,11 +62,19 @@ end
 #### For-Loops
 For-Loops are structured as follows:
 <pre>
-<b>for</b> name <b>=</b> value<b>,</b> condition<b>,</b> step <b>then</b> 
+<b>for</b> name <b>=</b> value<b>,</b> condition<b>,</b> step <b>do</b> 
   statements(s) 
 <b>end</b>
 </pre>
 Where `name` is the name of the variable, `value` is the initial value of the variable, `condition` is the condition that the variable has to satisfy, and `step` is the amount the variable is incremented by. Note that in the current stage of the language, the variable is always of type `number`.
+Here an example:
+```
+for x = 0, 10, 1 do
+  printString("x = ")
+  printNumber(x)
+  printAscii(10)
+end
+```
 ### Functions
 #### Declaration
 Function-Declarations are structured as follows:
@@ -97,7 +105,7 @@ end
 #### Call
 Function-Calls are structured as follows:
 <pre>
-name<b>(</b> parameters <b>)</b>
+name <b>(</b> parameters <b>)</b>
 </pre>
 Where `name` is the name of the function, and `parameters` are the parameters of the function. Note that there is still no type-checking at the moment, so be careful.
 Here is an example for the function `approx`:

@@ -21,7 +21,7 @@ enum class TokenType{
     ELSE_TOKEN,
     FOR_TOKEN,
     WHILE_TOKEN,
-    THEN_TOKEN,
+    DO_TOKEN,
     END_TOKEN,
     TYPE,
     OPERATOR,

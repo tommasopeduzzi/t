@@ -58,8 +58,8 @@ Token Lexer::getToken(){
             return {TokenType::IF_TOKEN};
         else if (Token == "else")
             return {TokenType::ELSE_TOKEN};
-        else if (Token == "then")
-            return {TokenType::THEN_TOKEN};
+        else if (Token == "do")
+            return {TokenType::DO_TOKEN};
         else if (Token == "for")
             return {TokenType::FOR_TOKEN};
         else if (Token == "while")
