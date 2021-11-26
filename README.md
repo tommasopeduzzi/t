@@ -7,11 +7,11 @@ My goal with this language is to be able to teach others how to solve problems i
 ## Documenation
 You can find the docs in the [Docs.md](docs/docs.md) file.
 
-##Currently known bugs/problems:
+## Currently known bugs/problems:
 - If there is no terminator instruction in the outermost layer of a function, the JIT will crash
 - It's currently a bit of a manual a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
 
-##TODO:
+## TODO:
 - [x] Functions
 - [x] Calls
 - [x] Mutable Variables
