@@ -13,7 +13,6 @@ std::unique_ptr<llvm::Module> Module;
 static std::vector<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>> Variables;
 
 void InitializeLLVM() {
-    // TODO: Make my own JIT, see tutorial @ llvm.org
     Context = std::make_unique<llvm::LLVMContext>();
     Module = std::make_unique<llvm::Module>("t", *Context);
     Builder = std::make_unique<llvm::IRBuilder<>>(*Context);

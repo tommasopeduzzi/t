@@ -27,6 +27,29 @@ llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 std::set<std::string> ImportedFiles;
 
+union returnTypes {
+    double d;
+    char * charPtr;
+};
+void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
+    auto &jd = JIT->getMainJITDylib();
+    auto &dl = JIT->getDataLayout();
+
+    llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
+    std::vector<std::pair<std::string, void*> > coreFnMap{
+            std::make_pair("printString", (void*)printString),
+            std::make_pair("printAscii", (void*)printAscii),
+            std::make_pair("printNumber", (void*)printNumber),
+            std::make_pair("input", (void*)input),
+    };
+    for(auto & [name, fn] : coreFnMap) {
+        auto s = llvm::orc::absoluteSymbols({{ Mangle(name), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(fn), llvm::JITSymbolFlags::Exported)}});
+        if(auto Error = jd.define(s)) {
+            llvm::errs() << "Error defining symbols: " << llvm::toString(std::move(Error)) << "\n";
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 2){
         std::cerr << "Expected File as first argument!\n" << argc;
@@ -56,19 +79,7 @@ void RunEntry(){
         //entry->print(llvm::errs());
         if (!JIT)
             exit(1);
-        auto &dl = JIT->getDataLayout();
-        llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
-        auto &jd = JIT->getMainJITDylib();
-
-        auto s = llvm::orc::absoluteSymbols({{ Mangle("printString"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printString), llvm::JITSymbolFlags::Exported)}});
-        jd.define(s);
-        s = llvm::orc::absoluteSymbols({{ Mangle("printAscii"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printAscii), llvm::JITSymbolFlags::Exported)}});
-        jd.define(s);
-        s = llvm::orc::absoluteSymbols({{ Mangle("printNumber"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&printNumber), llvm::JITSymbolFlags::Exported)}});
-        jd.define(s);
-        s = llvm::orc::absoluteSymbols({{ Mangle("input"), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(&input), llvm::JITSymbolFlags::Exported)}});
-        jd.define(s);
-
+        registerCoreFunctions(JIT);
         llvm::LoopAnalysisManager LAM;
         llvm::FunctionAnalysisManager FAM;
         llvm::CGSCCAnalysisManager CGAM;
