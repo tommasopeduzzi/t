@@ -28,13 +28,13 @@ llvm::PreservedAnalyses llvm::RemoveAfterFirstTerminatorPass::run(Function &F,
 llvm::PreservedAnalyses llvm::RemoveEmptyBasicBlocksPass::run(Function &F,
                                                               llvm::FunctionAnalysisManager &AM) {
     llvm::EliminateUnreachableBlocks(F);
-    /*llvm::SmallVector<llvm::BasicBlock*> ToBeRemoved;
+    llvm::SmallVector<llvm::BasicBlock*> ToBeRemoved;
     for(auto &BB : F){
         if(BB.empty())
             ToBeRemoved.push_back(&BB);
     }
-    for(auto &BB : ToBeRemoved) {
+    for(auto *BB : ToBeRemoved){
         BB->eraseFromParent();
-    }*/
+    }
     return PreservedAnalyses::all();
 }

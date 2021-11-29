@@ -89,14 +89,13 @@ void RunEntry(){
         PB.registerLoopAnalyses(LAM);
         PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-        llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(llvm::PassBuilder::OptimizationLevel::O2);
-        // MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveEmptyBasicBlocksPass()));
+        llvm::ModulePassManager MPM; // TODO: figure out a way to add the default pipeline after the fact.
+        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveEmptyBasicBlocksPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
         MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::PromotePass()));
-        //MPM.addPass(llvm::PrintModulePass());
+        // MPM.addPass(llvm::PrintModulePass());
         MPM.run(*Module, MAM);
-
         if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run
             std::cerr << "Can't run llvm Module, is faulty! \n";
             return;
