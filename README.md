@@ -5,7 +5,7 @@ The [Kaleidoscope Tutorial](https://llvm.org/docs/tutorial/MyFirstLanguageFronte
 My goal with this language is to be able to teach others how to solve problems instead of writing code, so it should be as simple as possible.
 
 ## Documenation
-You can find the docs in the [Docs.md](docs/docs.md) file.
+You can find the docs in the [Docs.md](docs/index.md) file.
 
 ## Currently known bugs/problems:
 - It's currently a bit of a manual a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
