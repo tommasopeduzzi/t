@@ -15,6 +15,7 @@ Currently there are 4 fundamental types, three of them with their own literals:
   - Has a value of either `true` or `false`
 - `void`: void type
 There is no such thing as type-checking at the moment, so be careful.
+
 ### Variables
 Variables are declared with the `var` keyword followed by the type of the variable (one of the fundamental types, except `void`).  
 Examples:

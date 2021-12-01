@@ -19,6 +19,7 @@
 #include "nodes.h"
 #include "lexer.h"
 #include "codegen.h"
+#include <chrono>
 
 
 void RunEntry();
@@ -110,8 +111,8 @@ void RunEntry(){
             std::cerr << "Error loading entry-function!\n";
             return;
         }
-
         auto *Expr = (double(*)())EntrySym->getAddress();
-        exit(Expr());
+        auto exitCode = Expr();
+        exit(exitCode);
     }
 }
