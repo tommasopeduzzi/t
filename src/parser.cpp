@@ -91,29 +91,45 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
             return LHS; // it's not a binary operator, because it's value is not string
         }
 
-        std::string Operator = std::get<std::string>(CurrentToken.value);
-        int TokenPrecedence = getOperatorPrecedence(Operator);
-
-        if(TokenPrecedence < expressionPrecedence){
-            return LHS; // It's not a binary expression, just return the left side.
-        }
-
-        // Parse right side:
-        getNextToken();
-
-        auto RHS = ParsePrimaryExpression();
-        if(!RHS){
-            return nullptr;
-        }
-        if(std::holds_alternative<std::string>(CurrentToken.value)){
-            if(TokenPrecedence < getOperatorPrecedence(std::get<std::string>(CurrentToken.value))){
-                RHS = ParseBinaryOperatorRHS(TokenPrecedence + 1, std::move(RHS));
-                if(!RHS)
-                    return nullptr;
+        if(CurrentToken == '['){
+            // Indexing operation
+            getNextToken(); // eat '['
+            auto Index = ParseExpression();
+            if(!Index){
+                return nullptr;
             }
+            if(CurrentToken != ']'){
+                LogErrorLineNo("Expected ']'!");
+                return nullptr;
+            }
+            getNextToken(); // eat ']'
+            LHS = std::make_unique<Indexing>(std::move(LHS), std::move(Index));
         }
-        // Merge left and right
-        LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS));
+        else{
+            std::string Operator = std::get<std::string>(CurrentToken.value);
+            int TokenPrecedence = getOperatorPrecedence(Operator);
+
+            if(TokenPrecedence < expressionPrecedence){
+                return LHS; // It's not a binary expression, just return the left side.
+            }
+
+            // Parse right side:
+            getNextToken();
+
+            auto RHS = ParsePrimaryExpression();
+            if(!RHS){
+                return nullptr;
+            }
+            if(std::holds_alternative<std::string>(CurrentToken.value)){
+                if(TokenPrecedence < getOperatorPrecedence(std::get<std::string>(CurrentToken.value))){
+                    RHS = ParseBinaryOperatorRHS(TokenPrecedence + 1, std::move(RHS));
+                    if(!RHS)
+                        return nullptr;
+                }
+            }
+            // Merge left and right
+            LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS));
+        }
     }
 }
 

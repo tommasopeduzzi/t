@@ -360,3 +360,8 @@ llvm::Value *Extern::codegen() {
     }
     return Function;
 }
+
+llvm::Value *Indexing::codegen(){
+    assert(false && "Indexing not implemented yet!");
+    return nullptr;
+}

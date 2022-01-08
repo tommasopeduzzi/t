@@ -75,6 +75,14 @@ public:
     virtual llvm::Value *codegen();
 };
 
+class Indexing : public Node{
+    std::unique_ptr<Node> Object, Index;
+public:
+    Indexing(std::unique_ptr<Node> object, std::unique_ptr<Node> index) :
+            Object(move(object)), Index(move(index)) {}
+    virtual llvm::Value *codegen();
+};
+
 class IfExpression : public Node {
     std::unique_ptr<Node> Condition;
     std::vector<std::unique_ptr<Node>> Then, Else;
