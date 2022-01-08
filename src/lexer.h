@@ -23,6 +23,7 @@ enum class TokenType{
     WHILE_TOKEN,
     DO_TOKEN,
     END_TOKEN,
+    OF_TOKEN,
     TYPE,
     OPERATOR,
     IDENTIFIER,

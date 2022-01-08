@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
 }
 
 void RunEntry(){
-    auto entryFunction = std::make_unique<Function>("entry", "number",
-                                                    std::vector<std::pair<std::string,std::string>>(),
+    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_unique<Type>("number")),
+                                                    std::vector<std::pair<std::unique_ptr<Type>,std::string>>(),
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
         if(auto IR = Decl->codegen()){

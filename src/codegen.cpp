@@ -6,6 +6,7 @@
 #include "error.h"
 #include <map>
 #include <llvm/IR/IRBuilder.h>
+#include "type.h"
 
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
@@ -24,17 +25,6 @@ llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
                                   Function->getEntryBlock().begin());
     return TempBuilder.CreateAlloca(llvm::Type::getDoubleTy(*Context),0,
                                  Name.c_str());
-}
-
-llvm::Type *GetType(std::string Name){
-    if (Name == "number")
-        return llvm::Type::getDoubleTy(*Context);
-    else if (Name == "bool")
-        return llvm::Type::getInt1Ty(*Context);
-    else if (Name == "void")
-        return llvm::Type::getVoidTy(*Context);
-    else
-        return llvm::Type::getInt8PtrTy(*Context);
 }
 
 void CreateScope(){
@@ -102,9 +92,9 @@ llvm::Value *VariableDefinition::codegen(){
     else{
         initialValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
     }
-    auto Type = GetType(this->Type);
+    auto LLVMType = type->GetLLVMType();
     auto Alloca = CreateAlloca(Function, Name);
-    CreateVariable(Name, Alloca, Type);
+    CreateVariable(Name, Alloca, LLVMType);
     return Builder->CreateStore(initialValue, Alloca);
 }
 
@@ -315,13 +305,12 @@ llvm::Value *Function::codegen() {
         // Create Vector that specifies the types for the arguments (atm only floating point numbers aka doubles)
         std::vector<llvm::Type*> ArgumentTypes (Arguments.size());
         for (int i = 0; i < Arguments.size();i++){
-            ArgumentTypes[i] = GetType(Arguments[i].first);
+            ArgumentTypes[i] = Arguments[i].first->GetLLVMType();
         }
-        llvm::FunctionType *FunctionType = llvm::FunctionType::get(GetType(Type), ArgumentTypes, false);
+        llvm::FunctionType *FunctionType = llvm::FunctionType::get(type->GetLLVMType(), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {
-            auto name = Arguments[i];
             Argument.setName(Arguments[i].second);
             i += 1;
         }
@@ -357,16 +346,14 @@ llvm::Value *Function::codegen() {
 llvm::Value *Extern::codegen() {
     llvm::Function *Function = Module->getFunction(Name);
     if(!Function){
-        // Create Vector that specifies the types for the arguments (atm only floating point numbers aka doubles)
         std::vector<llvm::Type*> ArgumentTypes (Arguments.size(), llvm::Type::getDoubleTy(*Context));
         for (int i = 0; i < Arguments.size();i++){
-            ArgumentTypes[i] = GetType(Arguments[i].first);
+            ArgumentTypes[i] = Arguments[i].first->GetLLVMType();
         }
-        llvm::FunctionType *FunctionType = llvm::FunctionType::get(GetType(Type), ArgumentTypes, false);
+        llvm::FunctionType *FunctionType = llvm::FunctionType::get(type->GetLLVMType(), ArgumentTypes, false);
         Function = llvm::Function::Create(FunctionType, llvm::Function::ExternalLinkage, Name, Module.get());
         int i = 0;
         for (auto &Argument : Function->args()) {
-            auto name = Arguments[i];
             Argument.setName(Arguments[i].second);
             i += 1;
         }

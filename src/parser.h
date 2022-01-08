@@ -49,7 +49,9 @@ public:
     std::unique_ptr<Node> ParseIdentifier();
     std::unique_ptr<Node> ParseReturnValue();
     std::vector<std::unique_ptr<Node>> ParseArguments();
-    std::vector<std::pair<std::string,std::string>> ParseArgumentDefinition();
+    std::vector<std::pair<std::unique_ptr<Type>,std::string>> ParseArgumentDefinition();
+    std::unique_ptr<Type> ParseType();
+
 };
 int getOperatorPrecedence(std::string Operator);
 

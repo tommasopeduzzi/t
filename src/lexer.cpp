@@ -66,6 +66,8 @@ Token Lexer::getToken(){
             return {TokenType::WHILE_TOKEN};
         else if (Token == "import")
             return {TokenType::IMPORT_TOKEN};
+        else if (Token == "of")
+            return {TokenType::OF_TOKEN};
         else if (Types.find(Token) != Types.end()){
             return {TokenType::TYPE, Token};
         }

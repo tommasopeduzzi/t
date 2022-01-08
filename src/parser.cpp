@@ -13,6 +13,21 @@ std::unique_ptr<Node> CheckForNull(std::unique_ptr<Node> node){
     return std::move(node);
 }
 
+std::unique_ptr<Type> Parser::ParseType(){
+    if(CurrentToken.type != TokenType::TYPE){
+        LogErrorLineNo("Expected type!");
+        exit(1);
+    }
+    auto TypeString = std::get<std::string>(CurrentToken.value);
+    getNextToken();     // eat type
+    if(CurrentToken.type == TokenType::OF_TOKEN){
+        getNextToken(); // eat of
+
+        return std::make_unique<Type>(TypeString, std::move(ParseType()));
+    }
+    return std::make_unique<Type>(TypeString);
+}
+
 void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
                           std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles){
     lexer = std::make_unique<Lexer>(filePath);
@@ -154,15 +169,9 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         LogErrorLineNo("Expected '->'!");
         return nullptr;
     }
-
     getNextToken();     // eat '->'
+    auto Type = ParseType();
 
-    if(CurrentToken.type != TokenType::TYPE){
-        LogErrorLineNo("Expected type!");
-        return nullptr;
-    }
-    auto Type = std::get<std::string>(CurrentToken.value);
-    getNextToken();     // eat type
     std::vector<std::unique_ptr<Node>> Expressions;
 
     while (CurrentToken.type != TokenType::END_TOKEN){
@@ -174,8 +183,8 @@ std::unique_ptr<Node> Parser::ParseFunction() {
         Expressions.push_back(std::move(Expression));
     }
     getNextToken();     //eat "end"
-    return std::make_unique<Function>(Name, Type,
-                                      Arguments,
+    return std::make_unique<Function>(Name, std::move(Type),
+                                      std::move(Arguments),
                                       std::move(Expressions));
 }
 
@@ -200,13 +209,8 @@ std::unique_ptr<Node> Parser::ParseExtern(){
     }
     getNextToken();     // eat '->'
 
-    if(CurrentToken.type != TokenType::TYPE){
-        LogErrorLineNo("Expected type!");
-        return nullptr;
-    }
-    auto Type = std::get<std::string>(CurrentToken.value);
-    getNextToken();     // eat type
-    return std::make_unique<Extern>(Name, Type, Arguments);
+    auto Type = ParseType();
+    return std::make_unique<Extern>(Name, std::move(Type), std::move(Arguments));
 }
 
 std::unique_ptr<Node> Parser::ParseIfStatement() {
@@ -323,12 +327,8 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
 std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     getNextToken(); //eat "var"
 
-    if(CurrentToken.type != TokenType::TYPE){
-        LogErrorLineNo("Expected type after 'var'!");
-        return nullptr;
-    }
-    auto Type = std::get<std::string>(CurrentToken.value);
-    getNextToken(); //eat type
+    auto Type = ParseType();
+
     if(CurrentToken.type != TokenType::IDENTIFIER){
         LogErrorLineNo("Expected identifier after type!");
         return nullptr;
@@ -348,7 +348,7 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     if(!Init)
         return nullptr;     //error already logged
 
-    return std::make_unique<VariableDefinition>(Name, Type, std::move(Init));
+    return std::make_unique<VariableDefinition>(Name, std::move(Type), std::move(Init));
 }
 
 std::unique_ptr<Node> Parser::ParseNegative() {
@@ -450,21 +450,20 @@ std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
     return Arguments;
 }
 
-std::vector<std::pair<std::string,std::string>> Parser::ParseArgumentDefinition() {
-    std::vector<std::pair<std::string,std::string>> Arguments;
+std::vector<std::pair<std::unique_ptr<Type>,std::string>> Parser::ParseArgumentDefinition() {
+    std::vector<std::pair<std::unique_ptr<Type>,std::string>> Arguments;
     if (CurrentToken == ')'){
         getNextToken(); // eat ')' in case 0 of arguments.
         return Arguments;
     }
     while(CurrentToken.type == TokenType::TYPE){
-        std::string Type = std::get<std::string>(CurrentToken.value);
-        getNextToken(); // eat type
+        auto Type = ParseType();
         if(CurrentToken.type != TokenType::IDENTIFIER){
             LogErrorLineNo("Expected identifier after type!");
             return {};
         }
         auto Name = std::get<std::string>(CurrentToken.value);
-        Arguments.push_back(std::make_pair(Type, Name));
+        Arguments.push_back(std::make_pair(std::move(Type), Name));
         getNextToken();     // eat identifier
         if(CurrentToken == ',' ){
             getNextToken(); // eat ',' and continue

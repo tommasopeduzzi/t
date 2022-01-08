@@ -5,6 +5,7 @@
 #ifndef T_NODES_H
 #define T_NODES_H
 
+#include "type.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -12,7 +13,10 @@
 
 class Node{
 public:
+    std::unique_ptr<Type> type;
     virtual ~Node() = default;
+    Node() = default;
+    Node(std::unique_ptr<Type> type) : type(move(type)) {}
     virtual llvm::Value *codegen() = 0;
 };
 
@@ -52,11 +56,11 @@ public:
 };
 
 class VariableDefinition : public Node {
-    std::string Name, Type;
+    std::string Name;
     std::unique_ptr<Node> Value;
 public:
-    VariableDefinition(std::string name, std::string type, std::unique_ptr<Node> Init) :
-        Name(name), Type(type), Value(std::move(Init)) {}
+    VariableDefinition(std::string name, std::unique_ptr<Type> type, std::unique_ptr<Node> Init) :
+        Node(move(type)), Name(name), Value(std::move(Init)) {}
     virtual llvm::Value *codegen();
 };
 
@@ -120,33 +124,33 @@ public:
 };
 
 class Function : public Node{
-    std::string Name, Type;
-    std::vector<std::pair<std::string, std::string>> Arguments;
+    std::string Name;
+    std::vector<std::pair<std::unique_ptr<Type>, std::string>> Arguments;
     std::vector<std::unique_ptr<Node>> Body;
 
 public:
-    Function(const std::string name, const std::string type,
-             std::vector<std::pair<std::string, std::string>> arguments,
+    Function(const std::string name, std::unique_ptr<Type> type,
+             std::vector<std::pair<std::unique_ptr<Type>, std::string>> arguments,
              std::unique_ptr<Node> body) :
-            Name(name), Type(type), Arguments(move(arguments)) {
+            Name(name), Node(move(type)), Arguments(move(arguments)) {
         Body.push_back(std::move(body));
     };
-    Function(const std::string name, const std::string type,
-             std::vector<std::pair<std::string, std::string>> arguments,
+    Function(const std::string name, std::unique_ptr<Type> type,
+             std::vector<std::pair<std::unique_ptr<Type> , std::string>> arguments,
              std::vector<std::unique_ptr<Node>> body) :
-            Name(name), Type(type), Arguments(move(arguments)), Body(move(body)) {}
+            Name(name), Node(move(type)), Arguments(move(arguments)), Body(move(body)) {}
 
     virtual llvm::Value *codegen();
 };
 
 class Extern : public Node {
-    std::string  Name, Type;
-    std::vector<std::pair<std::string, std::string>> Arguments;
+    std::string  Name;
+    std::vector<std::pair<std::unique_ptr<Type>, std::string>> Arguments;
 
 public:
-    Extern(const std::string name, const std::string type,
-           std::vector<std::pair<std::string, std::string>> arguments) :
-           Name(name), Type(type), Arguments(std::move(arguments)) {}
+    Extern(const std::string name, std::unique_ptr<Type> type,
+           std::vector<std::pair<std::unique_ptr<Type>, std::string>> arguments) :
+           Name(name), Node(move(type)), Arguments(move(arguments)) {}
     virtual llvm::Value *codegen();
 };
 
