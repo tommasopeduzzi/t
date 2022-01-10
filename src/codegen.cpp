@@ -19,11 +19,9 @@ void InitializeLLVM() {
     Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
 }
 
-llvm::AllocaInst *CreateAlloca(llvm::Function *Function,
-                               const std::string &Name){
-    llvm::IRBuilder<> TempBuilder(&Function->getEntryBlock(),
-                                  Function->getEntryBlock().begin());
-    return TempBuilder.CreateAlloca(llvm::Type::getDoubleTy(*Context),0,
+llvm::AllocaInst *CreateAlloca(llvm::Function *Function, llvm::Type* Type, const std::string &Name, int Size=1) {
+    return Builder->CreateAlloca(Type,
+                                 llvm::ConstantInt::get(llvm::Type::getDoubleTy(*Context), Size),
                                  Name.c_str());
 }
 
@@ -90,10 +88,11 @@ llvm::Value *VariableDefinition::codegen(){
             return nullptr;
     }
     else{
+        // TODO: Change this to have a different value based on type.
         initialValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
     }
     auto LLVMType = type->GetLLVMType();
-    auto Alloca = CreateAlloca(Function, Name);
+    auto Alloca = CreateAlloca(Function, LLVMType, Name, type->size);
     CreateVariable(Name, Alloca, LLVMType);
     return Builder->CreateStore(initialValue, Alloca);
 }
@@ -206,7 +205,7 @@ llvm::Value *ForLoop::codegen(){
         return nullptr;
 
     CreateScope();
-    auto Alloca = CreateAlloca(Function, VariableName);
+    auto Alloca = CreateAlloca(Function, llvm::Type::getDoubleTy(*Context), VariableName);
     CreateVariable(VariableName, Alloca, llvm::Type::getDoubleTy(*Context));
     Builder->CreateStore(StartValue, Alloca);
 
@@ -325,7 +324,7 @@ llvm::Value *Function::codegen() {
 
     CreateScope();
     for(auto &Arg : Function->args()){
-        llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getName().str());
+        llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getType(), Arg.getName().str());
         Builder->CreateStore(&Arg, Alloca);
         auto type = Arg.getType();
         CreateVariable(Arg.getName().str(), Alloca, type);
@@ -362,6 +361,8 @@ llvm::Value *Extern::codegen() {
 }
 
 llvm::Value *Indexing::codegen(){
-    assert(false && "Indexing not implemented yet!");
-    return nullptr;
+    auto object = Object->codegen();
+    auto index = Index->codegen();
+
+    return Builder->CreateGEP(object, index);
 }

@@ -10,9 +10,10 @@ class Type {
 public:
     const std::string type;
     std::unique_ptr<Type> subtype = nullptr;
+    int size = 1;
     Type() = default;
-    Type(const std::string type) : type(type) {}
-    Type(const std::string type, std::unique_ptr<Type> subtype) : type(type), subtype(move(subtype)) {}
+    Type(const std::string type, int size) : type(type), size(size){}
+    Type(const std::string type, std::unique_ptr<Type> subtype, int size) : type(type), subtype(move(subtype)), size(size) {}
     llvm::Type* GetLLVMType();
 };
 #endif

@@ -20,12 +20,26 @@ std::unique_ptr<Type> Parser::ParseType(){
     }
     auto TypeString = std::get<std::string>(CurrentToken.value);
     getNextToken();     // eat type
+    int size = 1;
+    if(CurrentToken == '['){
+        getNextToken();
+        if (CurrentToken.type != TokenType::NUMBER){
+            LogErrorLineNo("Expected int!");
+            exit(1);
+        }
+        size = (int)std::get<double>(CurrentToken.value);
+        getNextToken();
+        if(CurrentToken != ']'){
+            LogErrorLineNo("Expected )!");
+            exit(1);
+        }
+    }
     if(CurrentToken.type == TokenType::OF_TOKEN){
         getNextToken(); // eat of
 
-        return std::make_unique<Type>(TypeString, std::move(ParseType()));
+        return std::make_unique<Type>(TypeString, std::move(ParseType()), size);
     }
-    return std::make_unique<Type>(TypeString);
+    return std::make_unique<Type>(TypeString, size);
 }
 
 void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
@@ -375,7 +389,7 @@ std::unique_ptr<Node> Parser::ParseNegative() {
     return std::make_unique<Negative>(std::move(Expression));
 }
 
-std::unique_ptr<Node> Parser::ParseNumber(){
+std::unique_ptr<Number> Parser::ParseNumber(){
     auto number = std::make_unique<Number>(std::get<double>(CurrentToken.value));
     getNextToken(); // eat number
     return std::move(number);

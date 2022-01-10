@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 }
 
 void RunEntry(){
-    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_unique<Type>("number")),
+    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_unique<Type>("number", 0)),
                                                     std::vector<std::pair<std::unique_ptr<Type>,std::string>>(),
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
