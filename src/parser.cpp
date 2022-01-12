@@ -13,35 +13,6 @@ std::unique_ptr<Node> CheckForNull(std::unique_ptr<Node> node){
     return std::move(node);
 }
 
-std::unique_ptr<Type> Parser::ParseType(){
-    if(CurrentToken.type != TokenType::TYPE){
-        LogErrorLineNo("Expected type!");
-        exit(1);
-    }
-    auto TypeString = std::get<std::string>(CurrentToken.value);
-    getNextToken();     // eat type
-    int size = 1;
-    if(CurrentToken == '['){
-        getNextToken();
-        if (CurrentToken.type != TokenType::NUMBER){
-            LogErrorLineNo("Expected int!");
-            exit(1);
-        }
-        size = (int)std::get<double>(CurrentToken.value);
-        getNextToken();
-        if(CurrentToken != ']'){
-            LogErrorLineNo("Expected )!");
-            exit(1);
-        }
-    }
-    if(CurrentToken.type == TokenType::OF_TOKEN){
-        getNextToken(); // eat of
-
-        return std::make_unique<Type>(TypeString, std::move(ParseType()), size);
-    }
-    return std::make_unique<Type>(TypeString, size);
-}
-
 void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
                           std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles){
     lexer = std::make_unique<Lexer>(filePath);
@@ -64,7 +35,7 @@ void Parser::ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> 
                 break;
             default:
                 TopLevelExpressions.push_back(std::move(
-                        CheckForNull(std::move(ParseExpression()))));
+                        CheckForNull(std::move(PrimaryParse()))));
                 break;
         }
     }
@@ -89,8 +60,76 @@ Token Parser::getNextToken(){
     return CurrentToken = lexer->getToken();
 }
 
-std::unique_ptr<Node> Parser::ParseExpression() {
-    auto LHS = ParsePrimaryExpression();
+std::unique_ptr<Type> Parser::ParseType(){
+    if(CurrentToken.type != TokenType::TYPE){
+        LogErrorLineNo("Expected type!");
+        exit(1);
+    }
+    auto TypeString = std::get<std::string>(CurrentToken.value);
+    getNextToken();     // eat type
+    int size = 1;
+    if(CurrentToken == '['){
+        getNextToken();
+        if (CurrentToken.type != TokenType::NUMBER){
+            LogErrorLineNo("Expected int!");
+            exit(1);
+        }
+        size = (int)std::get<double>(CurrentToken.value);
+        getNextToken();
+        if(CurrentToken != ']'){
+            LogErrorLineNo("Expected )!");
+            exit(1);
+        }
+        getNextToken();     // eat ']
+    }
+    if(CurrentToken.type == TokenType::OF_TOKEN){
+        getNextToken(); // eat of
+
+        return std::make_unique<Type>(TypeString, std::move(ParseType()), size);
+    }
+    return std::make_unique<Type>(TypeString, size);
+}
+
+std::unique_ptr<Node> Parser::PrimaryParse(){
+    switch(CurrentToken.type){
+        case TokenType::RETURN_TOKEN:
+            return ParseReturn();
+        case TokenType::VAR_TOKEN:
+            return ParseVariableDefinition();
+        case TokenType::IF_TOKEN:
+            return ParseIfStatement();
+        case TokenType::FOR_TOKEN:
+            return ParseForLoop();
+        case TokenType::WHILE_TOKEN:
+            return ParseWhileLoop();
+        default:
+            return ParseBinaryExpression();
+    }
+}
+
+std::unique_ptr<Expression> Parser::ParseExpression(){
+    if(CurrentToken == '-')
+        return ParseNegative();
+    else if (CurrentToken == '(')
+        return ParseParentheses();
+    switch(CurrentToken.type){
+        case TokenType::IDENTIFIER:
+            return ParseIdentifier();
+        case TokenType::NUMBER:
+            return ParseNumber();
+        case TokenType::BOOL:
+            return ParseBool();
+        case TokenType::STRING:
+            return ParseString();
+        default:
+            LogErrorLineNo("Unexpected Token");
+            getNextToken();
+            return nullptr;
+    }
+}
+
+std::unique_ptr<Expression> Parser::ParseBinaryExpression() {
+    auto LHS = ParseExpression();
 
     if(!LHS){
         return nullptr;
@@ -99,7 +138,7 @@ std::unique_ptr<Node> Parser::ParseExpression() {
     return ParseBinaryOperatorRHS(0, std::move(LHS));
 }
 
-std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Node> LHS) {
+std::unique_ptr<Expression> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Expression> LHS) {
     while(true){
         if(!std::holds_alternative<std::string>(CurrentToken.value)){
             return LHS; // it's not a binary operator, because it's value is not string
@@ -108,7 +147,7 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
         if(CurrentToken == '['){
             // Indexing operation
             getNextToken(); // eat '['
-            auto Index = ParseExpression();
+            auto Index = ParseBinaryExpression();
             if(!Index){
                 return nullptr;
             }
@@ -130,7 +169,7 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
             // Parse right side:
             getNextToken();
 
-            auto RHS = ParsePrimaryExpression();
+            auto RHS = ParseExpression();
             if(!RHS){
                 return nullptr;
             }
@@ -147,38 +186,7 @@ std::unique_ptr<Node> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, s
     }
 }
 
-std::unique_ptr<Node> Parser::ParsePrimaryExpression(){
-    if(CurrentToken == '-')
-        return ParseNegative();
-    else if (CurrentToken == '(')
-        return ParseParentheses();
-    switch(CurrentToken.type){
-        case TokenType::IDENTIFIER:
-            return ParseIdentifier();
-        case TokenType::NUMBER:
-            return ParseNumber();
-        case TokenType::RETURN_TOKEN:
-            return ParseReturnValue();
-        case TokenType::VAR_TOKEN:
-            return ParseVariableDeclaration();
-        case TokenType::IF_TOKEN:
-            return ParseIfStatement();
-        case TokenType::FOR_TOKEN:
-            return ParseForLoop();
-        case TokenType::WHILE_TOKEN:
-            return ParseWhileLoop();
-        case TokenType::BOOL:
-            return ParseBool();
-        case TokenType::STRING:
-            return ParseString();
-        default:
-            LogErrorLineNo("Unexpected Token");
-            getNextToken();
-            return nullptr;
-    }
-}
-
-std::unique_ptr<Node> Parser::ParseFunction() {
+std::unique_ptr<Function> Parser::ParseFunction() {
     getNextToken();     // eat 'def'
 
     if(CurrentToken.type != TokenType::IDENTIFIER){
@@ -205,7 +213,7 @@ std::unique_ptr<Node> Parser::ParseFunction() {
     std::vector<std::unique_ptr<Node>> Expressions;
 
     while (CurrentToken.type != TokenType::END_TOKEN){
-        auto Expression = ParseExpression();
+        auto Expression = PrimaryParse();
 
         if(!Expression)     // error parsing expression, return
             return nullptr;
@@ -218,7 +226,7 @@ std::unique_ptr<Node> Parser::ParseFunction() {
                                       std::move(Expressions));
 }
 
-std::unique_ptr<Node> Parser::ParseExtern(){
+std::unique_ptr<Extern> Parser::ParseExtern(){
     getNextToken(); // eat 'extern'
 
     if(CurrentToken.type != TokenType::IDENTIFIER){
@@ -243,10 +251,10 @@ std::unique_ptr<Node> Parser::ParseExtern(){
     return std::make_unique<Extern>(Name, std::move(Type), std::move(Arguments));
 }
 
-std::unique_ptr<Node> Parser::ParseIfStatement() {
+std::unique_ptr<IfStatement> Parser::ParseIfStatement() {
     getNextToken();     // eat 'if'
 
-    auto Condition = ParseExpression();
+    auto Condition = ParseBinaryExpression();
     if(!Condition)
         return nullptr;
 
@@ -258,7 +266,7 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
     std::vector<std::unique_ptr<Node>> Then, Else;
     while(CurrentToken.type != TokenType::END_TOKEN &&
             CurrentToken.type != TokenType::ELSE_TOKEN){
-        auto Expression = ParseExpression();
+        auto Expression = PrimaryParse();
 
         if(!Expression)
             return nullptr;
@@ -268,7 +276,7 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
     if(CurrentToken.type == TokenType::ELSE_TOKEN){
         getNextToken();     //eat 'else'
         while(CurrentToken.type != TokenType::END_TOKEN){
-            auto Expression = ParseExpression();
+            auto Expression = PrimaryParse();
 
             if(!Expression)
                 return nullptr;
@@ -277,10 +285,10 @@ std::unique_ptr<Node> Parser::ParseIfStatement() {
         }
     }
     getNextToken(); //eat 'end'
-    return std::make_unique<IfExpression>(std::move(Condition), std::move(Then), std::move(Else));
+    return std::make_unique<IfStatement>(std::move(Condition), std::move(Then), std::move(Else));
 }
 
-std::unique_ptr<Node> Parser::ParseForLoop(){
+std::unique_ptr<ForLoop> Parser::ParseForLoop(){
     getNextToken(); // eat "for"
 
     if(CurrentToken.type != TokenType::IDENTIFIER){
@@ -289,10 +297,10 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
     }
     std::string VariableName = std::get<std::string>(CurrentToken.value);
     getNextToken(); // eat Identifier
-    std::unique_ptr<Node> StartValue;
+    std::unique_ptr<Expression> StartValue;
     if(CurrentToken == '='){
         getNextToken();     // eat '='
-        StartValue = ParseExpression();
+        StartValue = ParseBinaryExpression();
         if(!StartValue){
             return nullptr;
         }
@@ -302,14 +310,14 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
         return nullptr;
     }
     getNextToken();     // eat ','
-    auto Condition = ParseExpression();
+    auto Condition = ParseBinaryExpression();
     if(!Condition)
         return nullptr;
 
-    std::unique_ptr<Node> Step;
+    std::unique_ptr<Expression> Step;
     if(CurrentToken == ','){
         getNextToken();     // eat ','
-        Step = ParseExpression();
+        Step = ParseBinaryExpression();
         if(!Step)
             return nullptr;
     }
@@ -317,10 +325,10 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
         LogErrorLineNo("Expected 'then' after for loop declaration!");
         return nullptr;
     }
-    getNextToken();     // eat 'then'
+    getNextToken();     // eat 'do'
     std::vector<std::unique_ptr<Node>> Body;
     while (CurrentToken.type != TokenType::END_TOKEN){
-        auto Expression = ParseExpression();
+        auto Expression = PrimaryParse();
 
         if(!Expression)
             return nullptr;
@@ -331,10 +339,10 @@ std::unique_ptr<Node> Parser::ParseForLoop(){
     return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step), std::move(Body));
 }
 
-std::unique_ptr<Node> Parser::ParseWhileLoop(){
+std::unique_ptr<WhileLoop> Parser::ParseWhileLoop(){
     getNextToken();     // eat 'while'
 
-    auto Condition = ParseExpression();
+    auto Condition = ParseBinaryExpression();
     if(!Condition)
         return nullptr;
 
@@ -345,7 +353,7 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
     getNextToken();     // eat 'then'
     std::vector<std::unique_ptr<Node>> Body;
     while (CurrentToken.type != TokenType::END_TOKEN){
-        auto Expression = ParseExpression();
+        auto Expression = PrimaryParse();
         if(!Expression)
             return nullptr;
         Body.push_back(std::move(Expression));
@@ -354,7 +362,7 @@ std::unique_ptr<Node> Parser::ParseWhileLoop(){
     return std::make_unique<WhileLoop>(std::move(Condition), std::move(Body));
 }
 
-std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
+std::unique_ptr<VariableDefinition> Parser::ParseVariableDefinition() {
     getNextToken(); //eat "var"
 
     auto Type = ParseType();
@@ -368,12 +376,11 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     getNextToken();     // eat identifier
 
     if(CurrentToken != '='){
-        LogErrorLineNo("Expected '=' after identifer. ");
-        return nullptr;
+        return std::make_unique<VariableDefinition>(Name, std::move(Type));
     }
 
     getNextToken();     // eat '='
-    auto Init = ParseExpression();
+    auto Init = ParseBinaryExpression();
 
     if(!Init)
         return nullptr;     //error already logged
@@ -381,9 +388,9 @@ std::unique_ptr<Node> Parser::ParseVariableDeclaration() {
     return std::make_unique<VariableDefinition>(Name, std::move(Type), std::move(Init));
 }
 
-std::unique_ptr<Node> Parser::ParseNegative() {
+std::unique_ptr<Negative> Parser::ParseNegative() {
     getNextToken(); //eat '-'
-    auto Expression = ParseExpression();
+    auto Expression = ParseBinaryExpression();
     if(!Expression)
         return nullptr;
     return std::make_unique<Negative>(std::move(Expression));
@@ -395,24 +402,24 @@ std::unique_ptr<Number> Parser::ParseNumber(){
     return std::move(number);
 }
 
-std::unique_ptr<Node> Parser::ParseBool(){
+std::unique_ptr<Bool> Parser::ParseBool(){
     auto boolNode = std::make_unique<Bool>(std::get<bool>(CurrentToken.value));
     getNextToken(); // eat bool
     return std::move(boolNode);
 }
 
-std::unique_ptr<Node> Parser::ParseString(){
+std::unique_ptr<String> Parser::ParseString(){
     auto stringNode = std::make_unique<String>(std::get<std::string>(CurrentToken.value));
     getNextToken(); // eat string
     return std::move(stringNode);
 }
 
-std::unique_ptr<Node> Parser::ParseParentheses(){
+std::unique_ptr<Expression> Parser::ParseParentheses(){
     getNextToken();
-    auto value = ParseExpression();
+    auto value = ParseBinaryExpression();
 
     if(!value){
-        LogErrorLineNo("Error with Parentheses Expression");
+        LogErrorLineNo("Error with Parentheses expression");
         return nullptr;
     }
 
@@ -424,7 +431,7 @@ std::unique_ptr<Node> Parser::ParseParentheses(){
     return std::move(value);
 }
 
-std::unique_ptr<Node> Parser::ParseIdentifier(){
+std::unique_ptr<Expression> Parser::ParseIdentifier(){
     std::string Name = std::get<std::string>(CurrentToken.value);
 
     getNextToken(); // eat identifier
@@ -435,28 +442,28 @@ std::unique_ptr<Node> Parser::ParseIdentifier(){
 
     //function call
     getNextToken(); //eat '('
-    std::vector<std::unique_ptr<Node>> Arguments = ParseArguments();
+    std::vector<std::unique_ptr<Expression>> Arguments = ParseArguments();
 
     return std::make_unique<Call>(Name, std::move(Arguments));
 }
 
-std::unique_ptr<Node> Parser::ParseReturnValue(){
+std::unique_ptr<Return> Parser::ParseReturn(){
     getNextToken();     // eat 'return'
-    auto Expression = ParseExpression();
+    auto Expression = ParseBinaryExpression();
     if(!Expression)
         return nullptr;
 
     return std::make_unique<Return>(std::move(Expression));
 }
 
-std::vector<std::unique_ptr<Node>> Parser::ParseArguments() {
-    std::vector<std::unique_ptr<Node>> Arguments;
+std::vector<std::unique_ptr<Expression>> Parser::ParseArguments() {
+    std::vector<std::unique_ptr<Expression>> Arguments;
     if(CurrentToken == ')'){
         getNextToken();     // eat ')', no arguments
         return Arguments;
     }
     while(CurrentToken != ')'){
-        if(auto Argument = ParseExpression()){
+        if(auto Argument = ParseBinaryExpression()){
             Arguments.push_back(std::move(Argument));
         }
         else{

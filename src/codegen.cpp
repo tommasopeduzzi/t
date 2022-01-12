@@ -11,7 +11,8 @@
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
-static std::vector<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>> Variables;
+// TODO: make a struct/class for SymbolTable
+static std::vector<std::pair<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>, std::map<std::string, llvm::Type*>>> Symbols;
 
 void InitializeLLVM() {
     Context = std::make_unique<llvm::LLVMContext>();
@@ -26,34 +27,48 @@ llvm::AllocaInst *CreateAlloca(llvm::Function *Function, llvm::Type* Type, const
 }
 
 void CreateScope(){
-    Variables.push_back(std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>());
+    Symbols.push_back(std::pair<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>, std::map<std::string, llvm::Type*>>());
 }
 
 void DestroyScope(){
-    Variables.pop_back();
+    Symbols.pop_back();
 }
 
 void CreateVariable(std::string Name, llvm::AllocaInst *Alloca, llvm::Type *Type){
-    Variables.back()[Name] = std::make_pair(Type, Alloca);
+    Symbols.back().first[Name] = std::make_pair(Type, Alloca);
 }
 
-std::pair<llvm::Type*, llvm::AllocaInst*> GetVariable(std::string name){
-    for(auto &Scope : Variables){
-        if(Scope.find(name) != Scope.end()){
-            return Scope[name];
+std::pair<llvm::Value*, llvm::Type*> Variable::getAddressAndType() {
+    for (auto &Scope : Symbols) {
+        if (Scope.first.find(Name) != Scope.first.end()) {
+            return {Scope.first[Name].second, Scope.first[Name].first};
         }
     }
-    return std::make_pair(nullptr, nullptr);
+    LogErrorLineNo( "Variable not found");
+    exit(1);
+}
+
+std::pair<llvm::Value*, llvm::Type*> Call::getAddressAndType() {
+    for (auto &Scope : Symbols){
+        if (Scope.second.find(Callee) != Scope.second.end()) {
+            return {codegen(), Scope.second[Callee]};
+        }
+    }
+    LogErrorLineNo( "Function not found");
+    exit(1);
+}
+
+std::pair<llvm::Value*, llvm::Type*> Indexing::getAddressAndType() {
+    auto ObjectAddressAndType = Object->getAddressAndType();
+    return { Builder->CreateGEP(ObjectAddressAndType.second, ObjectAddressAndType.first, Builder->CreateFPToUI(Index->codegen(), llvm::Type::getInt16Ty(*Context))), ObjectAddressAndType.second};
 }
 
 llvm::Value *Negative::codegen(){
-    auto *Value = Expression->codegen();
+    auto *Value = expression->codegen();
     if(!Value){
         return nullptr;
     }
-    return Builder->CreateFMul(llvm::ConstantFP::get(*Context,
-                                                     llvm::APFloat(-1.0)),
-                               Value, "neg");
+    return Builder->CreateFMul(llvm::ConstantFP::get(*Context,llvm::APFloat(-1.0)), Value, "neg");
 }
 
 llvm::Value *Number::codegen() {
@@ -72,10 +87,13 @@ llvm::Value *String::codegen(){
 }
 
 llvm::Value *Variable::codegen(){
-    auto Variable = GetVariable(Name);
-    if(!Variable.first || !Variable.second)
-        return LogError("Unknown Variable");
-    return Builder->CreateLoad(Variable.first, Variable.second);
+    auto AddressAndType = getAddressAndType();
+    return Builder->CreateLoad(AddressAndType.second, AddressAndType.first);
+}
+
+llvm::Value *Indexing::codegen(){
+    auto AddressAndType = getAddressAndType();
+    return Builder->CreateLoad(AddressAndType.second, AddressAndType.first);
 }
 
 llvm::Value *VariableDefinition::codegen(){
@@ -97,21 +115,32 @@ llvm::Value *VariableDefinition::codegen(){
     return Builder->CreateStore(initialValue, Alloca);
 }
 
+llvm::Value *Call::codegen() {
+    llvm::Function *function = Module->getFunction(Callee);
+    if(!function)
+        return LogError("Function not defined!");
+    if(function->arg_size() != Arguments.size())
+        return LogError(
+                "Number of Arguments given does not match the number of arguments of the function.");
+    std::vector<llvm::Value*> ArgumentValues = {};
+    for(int i = 0; i < Arguments.size(); i++){
+        auto value = Arguments[i]->codegen();
+        if (!value)
+            return nullptr;
+        ArgumentValues.push_back(value);
+    }
+    return Builder->CreateCall(function, ArgumentValues);
+}
+
 llvm::Value *BinaryExpression::codegen(){
     if(Op == "="){
-        auto L = static_cast<Variable *>(LHS.get());
-        if(!L)
-            return LogError("Expected variable.");
+        auto AddressAndType = LHS->getAddressAndType();
 
         auto Value = RHS->codegen();
         if(!Value)
             return nullptr;
 
-        auto Variable = GetVariable(L->Name);
-        if(!Variable.first || !Variable.second)
-            return LogError("Unknown Variable");
-
-        Builder->CreateStore(Value, Variable.second);
+        Builder->CreateStore(Value, AddressAndType.first);
         return Value;
     }
 
@@ -149,7 +178,7 @@ llvm::Value *Return::codegen() {
     return Builder->CreateRet(ExpressionValue);
 }
 
-llvm::Value *IfExpression::codegen() {
+llvm::Value *IfStatement::codegen() {
     auto ConditionValue = Condition->codegen();
     if(!ConditionValue)
         return nullptr;
@@ -281,23 +310,6 @@ llvm::Value *WhileLoop::codegen(){
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
 
-llvm::Value *Call::codegen() {
-    llvm::Function *function = Module->getFunction(Callee);
-    if(!function)
-        return LogError("Function not defined!");
-    if(function->arg_size() != Arguments.size())
-        return LogError(
-                "Number of Arguments given does not match the number of arguments of the function.");
-    std::vector<llvm::Value*> ArgumentValues = {};
-    for(int i = 0; i < Arguments.size(); i++){
-        auto value = Arguments[i]->codegen();
-        if (!value)
-            return nullptr;
-        ArgumentValues.push_back(value);
-    }
-    return Builder->CreateCall(function, ArgumentValues);
-}
-
 llvm::Value *Function::codegen() {
     llvm::Function *Function = Module->getFunction(Name);
     if(!Function){
@@ -326,8 +338,7 @@ llvm::Value *Function::codegen() {
     for(auto &Arg : Function->args()){
         llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getType(), Arg.getName().str());
         Builder->CreateStore(&Arg, Alloca);
-        auto type = Arg.getType();
-        CreateVariable(Arg.getName().str(), Alloca, type);
+        CreateVariable(Arg.getName().str(), Alloca, Arg.getType());
     }
 
     for(int i = 0; i < Body.size(); i++){
@@ -358,11 +369,4 @@ llvm::Value *Extern::codegen() {
         }
     }
     return Function;
-}
-
-llvm::Value *Indexing::codegen(){
-    auto object = Object->codegen();
-    auto index = Index->codegen();
-
-    return Builder->CreateGEP(object, index);
 }

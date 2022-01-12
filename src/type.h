@@ -8,8 +8,8 @@
 
 class Type {
 public:
-    const std::string type;
-    std::unique_ptr<Type> subtype = nullptr;
+    std::string type;
+    std::shared_ptr<Type> subtype = nullptr;
     int size = 1;
     Type() = default;
     Type(const std::string type, int size) : type(type), size(size){}

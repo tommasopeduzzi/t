@@ -13,7 +13,7 @@ You can find the docs in the [Docs.md](docs/index.md) file.
 ## TODO:
 - [x] Functions
 - [x] Calls
-- [x] Mutable Variables
+- [x] Mutable Symbols
 - [x] Scopes
 - [x] Control flow:
   - [x] If-Else-Statements

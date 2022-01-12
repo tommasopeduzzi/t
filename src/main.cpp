@@ -67,13 +67,13 @@ void RunEntry(){
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
         if(auto IR = Decl->codegen()){
-            //IR->print(llvm::errs());
+            IR->print(llvm::errs());
             fprintf(stderr, "\n");
         }
     }
     if(auto entry = entryFunction->codegen()){
         auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-        //entry->print(llvm::errs());
+        entry->print(llvm::errs());
         if (!JIT)
             exit(1);
         registerCoreFunctions(JIT);

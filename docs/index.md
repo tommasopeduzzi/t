@@ -16,8 +16,8 @@ Currently there are 4 fundamental types, three of them with their own literals:
 - `void`: void type
 There is no such thing as type-checking at the moment, so be careful.
 
-### Variables
-Variables are declared with the `var` keyword followed by the type of the variable (one of the fundamental types, except `void`).  
+### Symbols
+Symbols are declared with the `var` keyword followed by the type of the variable (one of the fundamental types, except `void`).  
 Examples:
 ```
 var number x = 0
