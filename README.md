@@ -8,6 +8,8 @@ My goal with this language is to be able to teach others how to solve problems i
 You can find the docs in the [Docs.md](docs/index.md) file.
 
 ## Currently known bugs/problems:
+- Symbol table is crap. 
+- Call::getAdressType() implementation doesn't work. As Scopes are distroyed willy-nilly and we don't have a good way of keeping track of functions.
 - It's currently a bit of a manual a pain in the ass to add new core functions and they have to be specifically declared as external in the code 
 
 ## TODO:
@@ -24,7 +26,7 @@ You can find the docs in the [Docs.md](docs/index.md) file.
   - [x] Numbers
   - [x] Strings
   - [x] Booleans
-  - [ ] (Lists)
+  - [x] (Lists)
 - [ ] Standard Library
   - [x] Call into C-Functions
   - [ ] Math

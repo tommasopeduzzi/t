@@ -14,10 +14,14 @@ Currently there are 4 fundamental types, three of them with their own literals:
 - `bool`: a boolean
   - Has a value of either `true` or `false`
 - `void`: void type
+
+Each Type can be a list, by following the type with a `[size]`. Example: `number[64]` is a list of 64 numbers. Elements of the list can be 
+accessed with `name[index]`.
+
 There is no such thing as type-checking at the moment, so be careful.
 
-### Symbols
-Symbols are declared with the `var` keyword followed by the type of the variable (one of the fundamental types, except `void`).  
+### Variables
+Variables are declared with the `var` keyword followed by the type of the variable (one of the fundamental types, except `void`).  
 Examples:
 ```
 var number x = 0
