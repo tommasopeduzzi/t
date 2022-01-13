@@ -11,7 +11,7 @@
 #include <string>
 #include <llvm/IR/Value.h>
 
-enum NodeType{
+enum NodeType {
     UNKNOWN,
     EXPRESSION,
     STATEMENT,
@@ -32,105 +32,155 @@ enum NodeType{
     EXTERN
 };
 
-class Node{
+class Node {
 public:
     std::shared_ptr<Type> type;
+
     virtual ~Node() = default;
+
     Node() = default;
-    Node(std::unique_ptr<Type> type) : type(move(type)) {}
+
+    Node(std::shared_ptr<Type> type) : type(move(type)) {}
+
     virtual NodeType getNodeType() const { return NodeType::UNKNOWN; }
+
     virtual llvm::Value *codegen() = 0;
+
+    virtual void checkType() = 0;
 };
 
-class Expression : public Node{
+class Expression : public Node {
 public:
-    virtual NodeType getNodeType() const { return NodeType::STATEMENT; }
+    virtual NodeType getNodeType() const { return NodeType::EXPRESSION; }
+
     virtual llvm::Value *codegen() = 0;
-    virtual std::pair<llvm::Value*, llvm::Type*> getAddressAndType() {assert(false && "SOMETHING WENT TERRIBLY WRONG");}
+
+    virtual std::pair<llvm::Value *, llvm::Type *> getAddressAndType() {
+        assert(false && "SOMETHING WENT TERRIBLY WRONG");
+    }
 };
 
-class Statement : public Node{
+class Statement : public Node {
 public:
     virtual NodeType getNodeType() const { return NodeType::STATEMENT; }
+
     Statement() = default;
-    Statement(std::unique_ptr<Type> type) : Node(move(type)) {}
+
+    Statement(std::shared_ptr<Type> type) : Node(move(type)) {}
+
     virtual llvm::Value *codegen() = 0;
 };
 
 // TODO: maybe have another subclass for literals?
 
-class Number : public Expression{
+class Number : public Expression {
     double Value;
 public:
     virtual NodeType getNodeType() const { return NodeType::NUMBER; }
+
     Number(const double value) : Value(value) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
-class Bool : public Expression{
+class Bool : public Expression {
     bool Value;
 public:
     virtual NodeType getNodeType() const { return NodeType::BOOL; }
+
     Bool(const bool value) : Value(value) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
-class String : public Expression{
+class String : public Expression {
     std::string Value;
 public:
     virtual NodeType getNodeType() const { return NodeType::STRING; }
+
     String(std::string value) : Value(value) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class Negative : public Expression {
-    std::unique_ptr<Expression>  expression;
+    std::unique_ptr<Expression> expression;
 public:
     virtual NodeType getNodeType() const { return NodeType::NEGATIVE; }
+
     Negative(std::unique_ptr<Expression> Expression) : expression(std::move(Expression)) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
-class Variable : public Expression{
+class Variable : public Expression {
 public:
     virtual NodeType getNodeType() const { return NodeType::VARIABLE; }
-    Variable(const std::string name) : Name(name){}
+
+    Variable(const std::string name) : Name(name) {}
+
     std::string Name;
+
     virtual llvm::Value *codegen();
-    virtual std::pair<llvm::Value*, llvm::Type*> getAddressAndType();
+
+    virtual void checkType();
+
+    virtual std::pair<llvm::Value *, llvm::Type *> getAddressAndType();
 };
 
-class Indexing : public Expression{
+class Indexing : public Expression {
     std::unique_ptr<Expression> Index;
     std::unique_ptr<Expression> Object;
 public:
     virtual NodeType getNodeType() const { return NodeType::INDEXING; }
+
     Indexing(std::unique_ptr<Expression> object, std::unique_ptr<Expression> index) :
             Object(move(object)), Index(move(index)) {}
+
     virtual llvm::Value *codegen();
-    virtual std::pair<llvm::Value*, llvm::Type*> getAddressAndType();
+
+    virtual void checkType();
+
+    virtual std::pair<llvm::Value *, llvm::Type *> getAddressAndType();
 };
 
-class BinaryExpression : public Expression{
+class BinaryExpression : public Expression {
     std::string Op;
     std::unique_ptr<Expression> LHS, RHS;
 public:
     virtual NodeType getNodeType() const { return NodeType::BINARY_EXPRESSION; }
+
     BinaryExpression(std::string op, std::unique_ptr<Expression> lhs,
-                            std::unique_ptr<Expression> rhs):
-                            Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
+                     std::unique_ptr<Expression> rhs) :
+            Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
-class Call : public Expression{
+class Call : public Expression {
     std::string Callee;
     std::vector<std::unique_ptr<Expression>> Arguments;
 public:
     virtual NodeType getNodeType() const { return NodeType::CALL; }
+
     Call(const std::string callee, std::vector<std::unique_ptr<Expression>> arguments) :
-            Callee(callee), Arguments(move(arguments)){}
+            Callee(callee), Arguments(move(arguments)) {}
+
     virtual llvm::Value *codegen();
-    virtual std::pair<llvm::Value*, llvm::Type*> getAddressAndType();
+
+    virtual void checkType();
+
+    virtual std::pair<llvm::Value *, llvm::Type *> getAddressAndType();
 };
 
 class VariableDefinition : public Statement {
@@ -138,10 +188,15 @@ class VariableDefinition : public Statement {
     std::unique_ptr<Expression> Value = nullptr;
 public:
     virtual NodeType getNodeType() const { return NodeType::VARIABLE_DEFINITION; }
+
     VariableDefinition(std::string name, std::unique_ptr<Type> type, std::unique_ptr<Expression> Init) :
             Statement(move(type)), Name(name), Value(std::move(Init)) {}
+
     VariableDefinition(std::string name, std::unique_ptr<Type> type) : Statement(move(type)), Name(name) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class IfStatement : public Statement {
@@ -149,9 +204,14 @@ class IfStatement : public Statement {
     std::vector<std::unique_ptr<Node>> Then, Else;
 public:
     virtual NodeType getNodeType() const { return NodeType::IF_STATEMENT; }
-    IfStatement(std::unique_ptr<Expression> Cond, std::vector<std::unique_ptr<Node>> Then, std::vector<std::unique_ptr<Node>> Else) :
-        Condition(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {};
+
+    IfStatement(std::unique_ptr<Expression> Cond, std::vector<std::unique_ptr<Node>> Then,
+                std::vector<std::unique_ptr<Node>> Else) :
+            Condition(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {};
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class ForLoop : public Node {
@@ -160,11 +220,18 @@ class ForLoop : public Node {
     std::vector<std::unique_ptr<Node>> Body;
 public:
     virtual NodeType getNodeType() const { return NodeType::FOR_LOOP; }
-    ForLoop(std::string VariableName, std::unique_ptr<Expression> Start, std::unique_ptr<Expression>Condition,
+
+    ForLoop(std::string VariableName, std::unique_ptr<Expression> Start, std::unique_ptr<Expression> Condition,
             std::unique_ptr<Expression> Step, std::vector<std::unique_ptr<Node>> Body) : VariableName(VariableName),
-                                                                                   Start(std::move(Start)), Condition(std::move(Condition)), Step(std::move(Step)),
-                                                                                   Body(std::move(Body)) {};
+                                                                                         Start(std::move(Start)),
+                                                                                         Condition(
+                                                                                                 std::move(Condition)),
+                                                                                         Step(std::move(Step)),
+                                                                                         Body(std::move(Body)) {};
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class WhileLoop : public Statement {
@@ -172,49 +239,66 @@ class WhileLoop : public Statement {
     std::vector<std::unique_ptr<Node>> Body;
 public:
     virtual NodeType getNodeType() const { return NodeType::WHILE_LOOP; }
-    WhileLoop(std::unique_ptr<Node> Condition, std::vector<std::unique_ptr<Node>> Body) : Condition(std::move(Condition)),
-                                                                                   Body(std::move(Body)) {};
+
+    WhileLoop(std::unique_ptr<Node> Condition, std::vector<std::unique_ptr<Node>> Body) : Condition(
+            std::move(Condition)),
+                                                                                          Body(std::move(Body)) {};
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class Return : public Statement {
-    std::unique_ptr<Node> Expression;
+    std::unique_ptr<Expression> Value;
 public:
     virtual NodeType getNodeType() const { return NodeType::RETURN; }
-    Return(std::unique_ptr<Node> Expression) :
-    Expression(std::move(Expression)) {};
+
+    Return(std::unique_ptr<Expression> expression) :
+            Value(std::move(expression)) {};
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
-class Function : public Statement{
+class Function : public Statement {
     std::string Name;
-    std::vector<std::pair<std::unique_ptr<Type>, std::string>> Arguments;
+    std::vector<std::pair<std::shared_ptr<Type>, std::string>> Arguments;
     std::vector<std::unique_ptr<Node>> Body;
 public:
     virtual NodeType getNodeType() const { return NodeType::FUNCTION; }
-    Function(const std::string name, std::unique_ptr<Type> type,
-             std::vector<std::pair<std::unique_ptr<Type>, std::string>> arguments,
+
+    Function(const std::string name, std::shared_ptr<Type> type,
+             std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments,
              std::unique_ptr<Node> body) :
             Name(name), Statement(move(type)), Arguments(move(arguments)) {
         Body.push_back(std::move(body));
     };
-    Function(const std::string name, std::unique_ptr<Type> type,
-             std::vector<std::pair<std::unique_ptr<Type> , std::string>> arguments,
+
+    Function(const std::string name, std::shared_ptr<Type> type,
+             std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments,
              std::vector<std::unique_ptr<Node>> body) :
             Name(name), Statement(move(type)), Arguments(move(arguments)), Body(move(body)) {}
 
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 class Extern : public Statement {
-    std::string  Name;
-    std::vector<std::pair<std::unique_ptr<Type>, std::string>> Arguments;
+    std::string Name;
+    std::vector<std::pair<std::shared_ptr<Type>, std::string>> Arguments;
 public:
     virtual NodeType getNodeType() const { return NodeType::EXTERN; }
+
     Extern(const std::string name, std::unique_ptr<Type> type,
-           std::vector<std::pair<std::unique_ptr<Type>, std::string>> arguments) :
-           Name(name), Statement(move(type)), Arguments(move(arguments)) {}
+           std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments) :
+            Name(name), Statement(move(type)), Arguments(move(arguments)) {}
+
     virtual llvm::Value *codegen();
+
+    virtual void checkType();
 };
 
 #endif //T_NODES_H

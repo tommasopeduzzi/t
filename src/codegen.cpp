@@ -7,12 +7,12 @@
 #include <map>
 #include <llvm/IR/IRBuilder.h>
 #include "type.h"
+#include "symbols.h"
 
 std::unique_ptr<llvm::LLVMContext> Context;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::Module> Module;
-// TODO: make a struct/class for SymbolTable
-static std::vector<std::pair<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>, std::map<std::string, llvm::Type*>>> Symbols;
+Symbols Symbols;
 
 void InitializeLLVM() {
     Context = std::make_unique<llvm::LLVMContext>();
@@ -21,41 +21,17 @@ void InitializeLLVM() {
 }
 
 llvm::AllocaInst *CreateAlloca(llvm::Function *Function, llvm::Type* Type, const std::string &Name, int Size=1) {
-    return Builder->CreateAlloca(Type,
-                                 llvm::ConstantInt::get(llvm::Type::getDoubleTy(*Context), Size),
-                                 Name.c_str());
-}
-
-void CreateScope(){
-    Symbols.push_back(std::pair<std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>>, std::map<std::string, llvm::Type*>>());
-}
-
-void DestroyScope(){
-    Symbols.pop_back();
-}
-
-void CreateVariable(std::string Name, llvm::AllocaInst *Alloca, llvm::Type *Type){
-    Symbols.back().first[Name] = std::make_pair(Type, Alloca);
+    return Builder->CreateAlloca(Type,llvm::ConstantInt::get(llvm::Type::getDoubleTy(*Context), Size), Name);
 }
 
 std::pair<llvm::Value*, llvm::Type*> Variable::getAddressAndType() {
-    for (auto &Scope : Symbols) {
-        if (Scope.first.find(Name) != Scope.first.end()) {
-            return {Scope.first[Name].second, Scope.first[Name].first};
-        }
-    }
-    LogErrorLineNo( "Variable not found");
-    exit(1);
+    auto variable = Symbols.GetVariable(Name);
+    return std::make_pair(variable.address, variable.type->GetLLVMType());
 }
 
 std::pair<llvm::Value*, llvm::Type*> Call::getAddressAndType() {
-    for (auto &Scope : Symbols){
-        if (Scope.second.find(Callee) != Scope.second.end()) {
-            return {codegen(), Scope.second[Callee]};
-        }
-    }
-    LogErrorLineNo( "Function not found");
-    exit(1);
+    auto function = Symbols.GetFunction(Callee);
+    return std::make_pair(codegen(), function.type->GetLLVMType());
 }
 
 std::pair<llvm::Value*, llvm::Type*> Indexing::getAddressAndType() {
@@ -109,9 +85,8 @@ llvm::Value *VariableDefinition::codegen(){
         // TODO: Change this to have a different value based on type.
         initialValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
     }
-    auto LLVMType = type->GetLLVMType();
-    auto Alloca = CreateAlloca(Function, LLVMType, Name, type->size);
-    CreateVariable(Name, Alloca, LLVMType);
+    auto Alloca = CreateAlloca(Function, type->GetLLVMType(), Name, type->size);
+    Symbols.CreateVariable(Name, type, Alloca);
     return Builder->CreateStore(initialValue, Alloca);
 }
 
@@ -172,7 +147,7 @@ llvm::Value *BinaryExpression::codegen(){
 }
 
 llvm::Value *Return::codegen() {
-    auto ExpressionValue = Expression->codegen();
+    auto ExpressionValue = Value->codegen();
     if(!ExpressionValue)
         return nullptr;
     return Builder->CreateRet(ExpressionValue);
@@ -196,7 +171,7 @@ llvm::Value *IfStatement::codegen() {
     conditionInstruction = Builder->CreateCondBr(ConditionValue, ThenBlock, ElseBlock);
 
     Builder->SetInsertPoint(ThenBlock);
-    CreateScope();
+    Symbols.CreateScope();
     for(auto &Expression : Then){
         auto ExpressionIR = Expression->codegen();
 
@@ -205,11 +180,11 @@ llvm::Value *IfStatement::codegen() {
     }
     if(Builder->GetInsertBlock()->getTerminator() == nullptr)
         Builder->CreateBr(After);
-    DestroyScope();
+    Symbols.DestroyScope();
 
     Function->getBasicBlockList().push_back(ElseBlock);
     Builder->SetInsertPoint(ElseBlock);
-    CreateScope();
+    Symbols.CreateScope();
     for(auto &Expression : Else){
         auto ExpressionIR = Expression->codegen();
 
@@ -218,7 +193,7 @@ llvm::Value *IfStatement::codegen() {
     }
     if(Builder->GetInsertBlock()->getTerminator() == nullptr)
         Builder->CreateBr(After);
-    DestroyScope();
+    Symbols.DestroyScope();
 
     Function->getBasicBlockList().push_back(After);
     Builder->SetInsertPoint(After);
@@ -233,9 +208,9 @@ llvm::Value *ForLoop::codegen(){
     if(!StartValue)
         return nullptr;
 
-    CreateScope();
+    Symbols.CreateScope();
     auto Alloca = CreateAlloca(Function, llvm::Type::getDoubleTy(*Context), VariableName);
-    CreateVariable(VariableName, Alloca, llvm::Type::getDoubleTy(*Context));
+    Symbols.CreateVariable(VariableName, std::make_shared<Type>("number"), Alloca);
     Builder->CreateStore(StartValue, Alloca);
 
     Builder->CreateBr(ForLoopBlock);
@@ -270,7 +245,7 @@ llvm::Value *ForLoop::codegen(){
 
     auto AfterBlock = llvm::BasicBlock::Create(*Context, "afterloop", Function);
     Builder->CreateCondBr(EndCondition, ForLoopBlock, AfterBlock);
-    DestroyScope();
+    Symbols.DestroyScope();
     Builder->SetInsertPoint(AfterBlock);
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*Context));
 }
@@ -287,7 +262,7 @@ llvm::Value *WhileLoop::codegen(){
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
     Builder->SetInsertPoint(WhileLoopBlock);
-    CreateScope();
+    Symbols.CreateScope();
 
     for(auto &Expression : Body){
         auto ExpressionIR = Expression->codegen();
@@ -303,7 +278,7 @@ llvm::Value *WhileLoop::codegen(){
         ConditionValue = Builder->CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), "condition");
 
     Builder->CreateCondBr(ConditionValue, WhileLoopBlock, AfterBlock);
-    DestroyScope();
+    Symbols.DestroyScope();
 
     Builder->SetInsertPoint(AfterBlock);
 
@@ -334,13 +309,16 @@ llvm::Value *Function::codegen() {
     llvm::BasicBlock *BasicBlock = llvm::BasicBlock::Create(*Context, "entry", Function);
     Builder->SetInsertPoint(BasicBlock);
 
-    CreateScope();
+    Symbols.CreateScope();
+    int argument = 0;
     for(auto &Arg : Function->args()){
-        llvm::AllocaInst *Alloca = CreateAlloca(Function, Arg.getType(), Arg.getName().str());
+        Arg.setName(Arguments[argument].second);
+        llvm::AllocaInst *Alloca = CreateAlloca(Function, Arguments[argument].first->GetLLVMType(), Arg.getName().str());
+        Symbols.CreateVariable(Arg.getName().str(), Arguments[argument].first, Alloca);
         Builder->CreateStore(&Arg, Alloca);
-        CreateVariable(Arg.getName().str(), Alloca, Arg.getType());
+        argument += 1;
     }
-
+    Symbols.CreateFunction(Name, type, Arguments, Function);
     for(int i = 0; i < Body.size(); i++){
         auto value = Body[i]->codegen();
 
@@ -349,7 +327,7 @@ llvm::Value *Function::codegen() {
             return Function;
         }
     }
-    DestroyScope();
+    Symbols.DestroyScope();
     return Function;
 }
 
@@ -368,5 +346,6 @@ llvm::Value *Extern::codegen() {
             i += 1;
         }
     }
+    Symbols.CreateFunction(Name, type, Arguments, Function);
     return Function;
 }

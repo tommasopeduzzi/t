@@ -16,7 +16,7 @@ add_definitions(${LLVM_DEFINITIONS})
 set(BUILD_SHARED_LIBS ON)
 
 # Add main.cpp file of project root directory as source file
-set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp passes.cpp passes.h corefn/corefn.cpp corefn/corefn.h type.cpp)
+set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp passes.cpp passes.h corefn/corefn.cpp corefn/corefn.h type.cpp symbols.h)
 
 #add_subdirectory(corefn)
 

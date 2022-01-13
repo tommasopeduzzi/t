@@ -6,11 +6,12 @@
 #define T_CODEGEN_H
 
 #include <llvm/IR/IRBuilder.h>
+#include "symbols.h"
 
 extern std::unique_ptr<llvm::LLVMContext> Context;
 extern std::unique_ptr<llvm::IRBuilder<>> Builder;
 extern std::unique_ptr<llvm::Module> Module;
-extern std::vector<std::map<std::string, llvm::AllocaInst *>> Symbols;
+extern Symbols Symbols;
 
 void InitializeLLVM();
 #endif //T_CODEGEN_H

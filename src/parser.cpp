@@ -156,7 +156,9 @@ std::unique_ptr<Expression> Parser::ParseBinaryOperatorRHS(int expressionPrecede
                 return nullptr;
             }
             getNextToken(); // eat ']'
+            auto type = LHS->type;
             LHS = std::make_unique<Indexing>(std::move(LHS), std::move(Index));
+            LHS->type = type;   // set type of Indexing Operation to type of  the Object being indexed
         }
         else{
             std::string Operator = std::get<std::string>(CurrentToken.value);
@@ -210,7 +212,7 @@ std::unique_ptr<Function> Parser::ParseFunction() {
     getNextToken();     // eat '->'
     auto Type = ParseType();
 
-    std::vector<std::unique_ptr<Node>> Expressions;
+    std::vector<std::unique_ptr<Node>> Body;
 
     while (CurrentToken.type != TokenType::END_TOKEN){
         auto Expression = PrimaryParse();
@@ -218,12 +220,12 @@ std::unique_ptr<Function> Parser::ParseFunction() {
         if(!Expression)     // error parsing expression, return
             return nullptr;
 
-        Expressions.push_back(std::move(Expression));
+        Body.push_back(std::move(Expression));
     }
     getNextToken();     //eat "end"
     return std::make_unique<Function>(Name, std::move(Type),
                                       std::move(Arguments),
-                                      std::move(Expressions));
+                                      std::move(Body));
 }
 
 std::unique_ptr<Extern> Parser::ParseExtern(){
@@ -487,8 +489,8 @@ std::vector<std::unique_ptr<Expression>> Parser::ParseArguments() {
     return Arguments;
 }
 
-std::vector<std::pair<std::unique_ptr<Type>,std::string>> Parser::ParseArgumentDefinition() {
-    std::vector<std::pair<std::unique_ptr<Type>,std::string>> Arguments;
+std::vector<std::pair<std::shared_ptr<Type>,std::string>> Parser::ParseArgumentDefinition() {
+    std::vector<std::pair<std::shared_ptr<Type>,std::string>> Arguments;
     if (CurrentToken == ')'){
         getNextToken(); // eat ')' in case 0 of arguments.
         return Arguments;

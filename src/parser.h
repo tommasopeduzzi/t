@@ -50,7 +50,7 @@ public:
     std::unique_ptr<Expression> ParseIdentifier();
     std::unique_ptr<Return> ParseReturn();
     std::vector<std::unique_ptr<Expression>> ParseArguments();
-    std::vector<std::pair<std::unique_ptr<Type>,std::string>> ParseArgumentDefinition();
+    std::vector<std::pair<std::shared_ptr<Type>,std::string>> ParseArgumentDefinition();
     std::unique_ptr<Type> ParseType();
 
 };

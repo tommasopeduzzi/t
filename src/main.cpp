@@ -21,31 +21,14 @@
 #include "codegen.h"
 #include <chrono>
 
-
+void TypeCheck();
 void RunEntry();
+void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT);
 
 llvm::ExitOnError ExitOnErr;
 std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 std::set<std::string> ImportedFiles;
 
-void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
-    auto &jd = JIT->getMainJITDylib();
-    auto &dl = JIT->getDataLayout();
-
-    llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
-    std::vector<std::pair<std::string, void*> > coreFnMap{
-            std::make_pair("printString", (void*)printString),
-            std::make_pair("printAscii", (void*)printAscii),
-            std::make_pair("printNumber", (void*)printNumber),
-            std::make_pair("input", (void*)input),
-    };
-    for(auto & [name, fn] : coreFnMap) {
-        auto s = llvm::orc::absoluteSymbols({{ Mangle(name), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(fn), llvm::JITSymbolFlags::Exported)}});
-        if(auto Error = jd.define(s)) {
-            llvm::errs() << "Error defining symbols: " << llvm::toString(std::move(Error)) << "\n";
-        }
-    }
-}
 
 int main(int argc, char* argv[]) {
     if(argc < 2){
@@ -58,22 +41,33 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<Parser> parser = std::make_unique<Parser>();
     ImportedFiles.insert(argv[1]);
     parser->ParseFile(argv[1], FunctionDeclarations, TopLevelExpressions, ImportedFiles);
+    TypeCheck();
     RunEntry();
 }
 
+void TypeCheck(){
+    Symbols.CreateScope();
+    for(auto& node : FunctionDeclarations){
+        node->checkType();
+    }
+    for(auto& node : TopLevelExpressions){
+        node->checkType();
+    }
+}
 void RunEntry(){
-    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_unique<Type>("number", 0)),
-                                                    std::vector<std::pair<std::unique_ptr<Type>,std::string>>(),
+    Symbols.Reset();
+    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_shared<Type>("number")),
+                                                    std::vector<std::pair<std::shared_ptr<Type>,std::string>>(),
                                                     std::move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
         if(auto IR = Decl->codegen()){
-            IR->print(llvm::errs());
+            // IR->print(llvm::errs());
             fprintf(stderr, "\n");
         }
     }
     if(auto entry = entryFunction->codegen()){
         auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-        entry->print(llvm::errs());
+        // entry->print(llvm::errs());
         if (!JIT)
             exit(1);
         registerCoreFunctions(JIT);
@@ -114,5 +108,24 @@ void RunEntry(){
         auto *Expr = (double(*)())EntrySym->getAddress();
         auto exitCode = Expr();
         exit(exitCode);
+    }
+}
+
+void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
+    auto &jd = JIT->getMainJITDylib();
+    auto &dl = JIT->getDataLayout();
+
+    llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
+    std::vector<std::pair<std::string, void*> > coreFnMap{
+            std::make_pair("printString", (void*)printString),
+            std::make_pair("printAscii", (void*)printAscii),
+            std::make_pair("printNumber", (void*)printNumber),
+            std::make_pair("input", (void*)input),
+    };
+    for(auto & [name, fn] : coreFnMap) {
+        auto s = llvm::orc::absoluteSymbols({{ Mangle(name), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(fn), llvm::JITSymbolFlags::Exported)}});
+        if(auto Error = jd.define(s)) {
+            llvm::errs() << "Error defining symbols: " << llvm::toString(std::move(Error)) << "\n";
+        }
     }
 }
