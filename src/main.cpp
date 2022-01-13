@@ -21,24 +21,27 @@
 #include "codegen.h"
 #include <chrono>
 
+using namespace std;
+using namespace llvm;
+using namespace t;
+
 void TypeCheck();
 void RunEntry();
-void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT);
+void registerCoreFunctions(unique_ptr<orc::LLJIT>& JIT);
 
-llvm::ExitOnError ExitOnErr;
-std::vector<std::unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
-std::set<std::string> ImportedFiles;
-
+ExitOnError ExitOnErr;
+vector<unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
+set<string> ImportedFiles;
 
 int main(int argc, char* argv[]) {
     if(argc < 2){
-        std::cerr << "Expected File as first argument!\n" << argc;
+        cerr << "Expected File as first argument!\n" << argc;
         return 0;
     }
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
-    std::unique_ptr<Parser> parser = std::make_unique<Parser>();
+    unique_ptr<Parser> parser = make_unique<Parser>();
     ImportedFiles.insert(argv[1]);
     parser->ParseFile(argv[1], FunctionDeclarations, TopLevelExpressions, ImportedFiles);
     TypeCheck();
@@ -56,27 +59,27 @@ void TypeCheck(){
 }
 void RunEntry(){
     Symbols.Reset();
-    auto entryFunction = std::make_unique<Function>("entry", std::move(std::make_shared<Type>("number")),
-                                                    std::vector<std::pair<std::shared_ptr<Type>,std::string>>(),
-                                                    std::move(TopLevelExpressions));
+    auto entryFunction = make_unique<t::Function>("entry", move(make_shared<t::Type>("number")),
+                                                    vector<pair<shared_ptr<t::Type>,string>>(),
+                                                    move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
         if(auto IR = Decl->codegen()){
-            // IR->print(llvm::errs());
+            // IR->print(errs());
             fprintf(stderr, "\n");
         }
     }
     if(auto entry = entryFunction->codegen()){
-        auto JIT = ExitOnErr(llvm::orc::LLJITBuilder().create());
-        // entry->print(llvm::errs());
+        auto JIT = ExitOnErr(orc::LLJITBuilder().create());
+        // entry->print(errs());
         if (!JIT)
             exit(1);
         registerCoreFunctions(JIT);
-        llvm::LoopAnalysisManager LAM;
-        llvm::FunctionAnalysisManager FAM;
-        llvm::CGSCCAnalysisManager CGAM;
-        llvm::ModuleAnalysisManager MAM;
+        LoopAnalysisManager LAM;
+        FunctionAnalysisManager FAM;
+        CGSCCAnalysisManager CGAM;
+        ModuleAnalysisManager MAM;
 
-        llvm::PassBuilder PB;
+        PassBuilder PB;
 
         PB.registerModuleAnalyses(MAM);
         PB.registerCGSCCAnalyses(CGAM);
@@ -84,19 +87,19 @@ void RunEntry(){
         PB.registerLoopAnalyses(LAM);
         PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-        llvm::ModulePassManager MPM; // TODO: figure out a way to add the default pipeline after the fact.
-        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveEmptyBasicBlocksPass()));
-        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::RemoveAfterFirstTerminatorPass()));
-        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::SimplifyCFGPass()));
-        MPM.addPass(llvm::createModuleToFunctionPassAdaptor(llvm::PromotePass()));
-        // MPM.addPass(llvm::PrintModulePass());
-        MPM.run(*Module, MAM);
-        if(llvm::verifyModule(*Module)) {  //make sure the module is safe to run
-            std::cerr << "Can't run llvm Module, is faulty! \n";
+        ModulePassManager MPM; // TODO: figure out a way to add the default pipeline after the fact.
+        MPM.addPass(createModuleToFunctionPassAdaptor(RemoveEmptyBasicBlocksPass()));
+        MPM.addPass(createModuleToFunctionPassAdaptor(RemoveAfterFirstTerminatorPass()));
+        MPM.addPass(createModuleToFunctionPassAdaptor(SimplifyCFGPass()));
+        MPM.addPass(createModuleToFunctionPassAdaptor(PromotePass()));
+        // MPM.addPass(PrintModulePass());
+        MPM.run(*t::Module, MAM);
+        if(verifyModule(*t::Module)) {  //make sure the module is safe to run
+            cerr << "Can't run llvm Module, is faulty! \n";
             return;
         }
         if (auto Err = JIT.get()->addIRModule(
-                llvm::orc::ThreadSafeModule(std::move(Module), std::move(Context)))){
+                orc::ThreadSafeModule(std::move(t::Module), std::move(Context)))){
             std::cerr << "Error loading module: " << toString(std::move(Err)) << "\n";
             return;
         }
@@ -111,11 +114,11 @@ void RunEntry(){
     }
 }
 
-void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
+void registerCoreFunctions(std::unique_ptr<orc::LLJIT>& JIT) {
     auto &jd = JIT->getMainJITDylib();
     auto &dl = JIT->getDataLayout();
 
-    llvm::orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
+    orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
     std::vector<std::pair<std::string, void*> > coreFnMap{
             std::make_pair("printString", (void*)printString),
             std::make_pair("printAscii", (void*)printAscii),
@@ -123,9 +126,9 @@ void registerCoreFunctions(std::unique_ptr<llvm::orc::LLJIT>& JIT) {
             std::make_pair("input", (void*)input),
     };
     for(auto & [name, fn] : coreFnMap) {
-        auto s = llvm::orc::absoluteSymbols({{ Mangle(name), llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(fn), llvm::JITSymbolFlags::Exported)}});
+        auto s = orc::absoluteSymbols({{ Mangle(name), JITEvaluatedSymbol(pointerToJITTargetAddress(fn), JITSymbolFlags::Exported)}});
         if(auto Error = jd.define(s)) {
-            llvm::errs() << "Error defining symbols: " << llvm::toString(std::move(Error)) << "\n";
+            errs() << "Error defining symbols: " << toString(std::move(Error)) << "\n";
         }
     }
 }

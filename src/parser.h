@@ -2,58 +2,87 @@
 // Created by tommasopeduzzi on 12/08/2021.
 //
 
-#ifndef T_PARSER_H
-#define T_PARSER_H
+#pragma once
 
 #include <map>
 #include "nodes.h"
 #include "lexer.h"
 
-static std::map<std::string, int> OperatorPrecedence{
-        {"=",1},
-        {"<",10},
-        {"<=",10},
-        {">=",10},
-        {"==",10},
-        {"<",10},
-        {">", 10},
-        {"+", 20},
-        {"-", 20},
-        {"/", 30},
-        {"*", 30},
-};
+using namespace std;
 
-class Parser{
-public:
-    Token CurrentToken;
-    Token getNextToken();
-    std::unique_ptr<Lexer> lexer;
-    void ParseFile(std::string filePath, std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
-              std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles);
-    void HandleImport(std::vector<std::unique_ptr<Node>> &FunctionDeclarations,
-                      std::vector<std::unique_ptr<Node>> &TopLevelExpressions, std::set<std::string> &ImportedFiles);
-    std::unique_ptr<Node> PrimaryParse();
-    std::unique_ptr<IfStatement> ParseIfStatement();
-    std::unique_ptr<ForLoop> ParseForLoop();
-    std::unique_ptr<WhileLoop> ParseWhileLoop();
-    std::unique_ptr<VariableDefinition> ParseVariableDefinition();
-    std::unique_ptr<Expression> ParseExpression();
-    std::unique_ptr<Expression> ParseBinaryExpression();
-    std::unique_ptr<Expression> ParseBinaryOperatorRHS(int expressionPrecedence, std::unique_ptr<Expression> LHS);
-    std::unique_ptr<Function> ParseFunction();
-    std::unique_ptr<Extern> ParseExtern();
-    std::unique_ptr<Negative> ParseNegative();
-    std::unique_ptr<Number> ParseNumber();
-    std::unique_ptr<Bool> ParseBool();
-    std::unique_ptr<String> ParseString();
-    std::unique_ptr<Expression> ParseParentheses();
-    std::unique_ptr<Expression> ParseIdentifier();
-    std::unique_ptr<Return> ParseReturn();
-    std::vector<std::unique_ptr<Expression>> ParseArguments();
-    std::vector<std::pair<std::shared_ptr<Type>,std::string>> ParseArgumentDefinition();
-    std::unique_ptr<Type> ParseType();
+namespace t {
 
-};
-int getOperatorPrecedence(std::string Operator);
+    static map<string, int> OperatorPrecedence{
+            {"=",  1},
+            {"<",  10},
+            {"<=", 10},
+            {">=", 10},
+            {"==", 10},
+            {"<",  10},
+            {">",  10},
+            {"+",  20},
+            {"-",  20},
+            {"/",  30},
+            {"*",  30},
+    };
 
-#endif //T_PARSER_H
+    class Parser {
+    public:
+        Token CurrentToken;
+
+        Token getNextToken();
+
+        unique_ptr<Lexer> lexer;
+
+        void ParseFile(string filePath, vector<unique_ptr<Node>> &FunctionDeclarations,
+                       vector<unique_ptr<Node>> &TopLevelExpressions, set<string> &ImportedFiles);
+
+        void HandleImport(vector<unique_ptr<Node>> &FunctionDeclarations,
+                          vector<unique_ptr<Node>> &TopLevelExpressions,
+                          set<string> &ImportedFiles);
+
+        unique_ptr<Node> PrimaryParse();
+
+        unique_ptr<IfStatement> ParseIfStatement();
+
+        unique_ptr<ForLoop> ParseForLoop();
+
+        unique_ptr<WhileLoop> ParseWhileLoop();
+
+        unique_ptr<VariableDefinition> ParseVariableDefinition();
+
+        unique_ptr<Expression> ParseExpression();
+
+        unique_ptr<Expression> ParseBinaryExpression();
+
+        unique_ptr<Expression> ParseBinaryOperatorRHS(int expressionPrecedence, unique_ptr<Expression> LHS);
+
+        unique_ptr<Function> ParseFunction();
+
+        unique_ptr<Extern> ParseExtern();
+
+        unique_ptr<Negative> ParseNegative();
+
+        unique_ptr<Number> ParseNumber();
+
+        unique_ptr<Bool> ParseBool();
+
+        unique_ptr<String> ParseString();
+
+        unique_ptr<Expression> ParseParentheses();
+
+        unique_ptr<Expression> ParseIdentifier();
+
+        unique_ptr<Return> ParseReturn();
+
+        vector<unique_ptr<Expression>> ParseArguments();
+
+        vector<pair<shared_ptr<Type>, string>> ParseArgumentDefinition();
+
+        unique_ptr<Type> ParseType();
+
+    };
+
+    int getOperatorPrecedence(string Operator);
+
+}

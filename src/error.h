@@ -9,6 +9,6 @@
 #include "nodes.h"
 #include <iostream>
 
-llvm::Value *LogError(const std::string message);
-void LogErrorLineNo(const std::string message);
+llvm::Value *LogError(const string message);
+void LogErrorLineNo(const string message);
 #endif //T_ERROR_H

@@ -4,11 +4,11 @@
 
 #include "error.h"
 
-void LogErrorLineNo(const std::string message){
-    std::cerr << message << " on line " << "lineNo" << std::endl;
+void LogErrorLineNo(const string message){
+    cerr << message << " on line " << "lineNo" << endl;
 }
 
-llvm::Value *LogError(const std::string message){
-    std::cerr << message << std::endl;
+llvm::Value *LogError(const string message){
+    cerr << message << endl;
     return nullptr;
 }
