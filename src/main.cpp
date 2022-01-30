@@ -59,7 +59,7 @@ void TypeCheck(){
 }
 void RunEntry(){
     Symbols.Reset();
-    auto entryFunction = make_unique<t::Function>("entry", move(make_shared<t::Type>("number")),
+    auto entryFunction = make_unique<t::Function>("entry", move(make_shared<t::Type>("number")), FileLocation(),
                                                     vector<pair<shared_ptr<t::Type>,string>>(),
                                                     move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){

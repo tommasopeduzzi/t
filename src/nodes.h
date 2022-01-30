@@ -5,6 +5,7 @@
 #pragma once
 
 #include "type.h"
+#include "lexer.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -39,11 +40,13 @@ namespace t {
     public:
         shared_ptr<Type> type;
 
+        FileLocation location;
+
         virtual ~Node() = default;
 
         Node() = default;
 
-        Node(shared_ptr<Type> type) : type(move(type)) {}
+        Node(shared_ptr<Type> type = nullptr, FileLocation location = {}) : type(move(type)), location(location){}
 
         virtual NodeType getNodeType() const { return NodeType::UNKNOWN; }
 
@@ -55,6 +58,12 @@ namespace t {
     class Expression : public Node {
     public:
         virtual NodeType getNodeType() const { return NodeType::EXPRESSION; }
+
+        Expression() = default;
+
+        Expression(FileLocation location) : Node(nullptr, location){}
+
+        Expression(shared_ptr<Type> type, FileLocation location) : Node(move(type), location) {}
 
         virtual llvm::Value *codegen() = 0;
 
@@ -69,7 +78,9 @@ namespace t {
 
         Statement() = default;
 
-        Statement(shared_ptr<Type> type) : Node(move(type)) {}
+        Statement(FileLocation location) : Node(nullptr, location){}
+
+        Statement(shared_ptr<Type> type = nullptr, FileLocation location = {}) : Node(move(type), location) {}
 
         virtual llvm::Value *codegen() = 0;
     };
@@ -81,7 +92,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::NUMBER; }
 
-        Number(const double value) : Value(value) {}
+        Number(const double value, FileLocation location) : Expression(location), Value(value) {}
 
         virtual llvm::Value *codegen();
 
@@ -93,7 +104,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::BOOL; }
 
-        Bool(const bool value) : Value(value) {}
+        Bool(const bool value, FileLocation location) : Expression(location), Value(value) {}
 
         virtual llvm::Value *codegen();
 
@@ -105,7 +116,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::STRING; }
 
-        String(string value) : Value(value) {}
+        String(string value, FileLocation location) : Expression(location), Value(value) {}
 
         virtual llvm::Value *codegen();
 
@@ -117,7 +128,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::NEGATIVE; }
 
-        Negative(unique_ptr<Expression> Expression) : expression(move(Expression)) {}
+        Negative(unique_ptr<Expression> expression, FileLocation location) : Expression(location), expression(move(expression)) {}
 
         virtual llvm::Value *codegen();
 
@@ -128,7 +139,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::VARIABLE; }
 
-        Variable(const string name) : Name(name) {}
+        Variable(const string name, FileLocation location) : Expression(location), Name(name) {}
 
         string Name;
 
@@ -145,8 +156,8 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::INDEXING; }
 
-        Indexing(unique_ptr<Expression> object, unique_ptr<Expression> index) :
-                Object(move(object)), Index(move(index)) {}
+        Indexing(unique_ptr<Expression> object, unique_ptr<Expression> index, FileLocation location) :
+            Expression(location), Object(move(object)), Index(move(index)) {}
 
         virtual llvm::Value *codegen();
 
@@ -161,9 +172,8 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::BINARY_EXPRESSION; }
 
-        BinaryExpression(string op, unique_ptr<Expression> lhs,
-                         unique_ptr<Expression> rhs) :
-                Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
+        BinaryExpression(string op, unique_ptr<Expression> lhs, unique_ptr<Expression> rhs, FileLocation location) :
+                         Expression(location), Op(op), LHS(move(lhs)), RHS(move(rhs)) {}
 
         virtual llvm::Value *codegen();
 
@@ -176,8 +186,8 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::CALL; }
 
-        Call(const std::string callee, std::vector<std::unique_ptr<Expression>> arguments) :
-                Callee(callee), Arguments(move(arguments)) {}
+        Call(const std::string callee, std::vector<std::unique_ptr<Expression>> arguments, FileLocation location) :
+            Expression(location), Callee(callee), Arguments(move(arguments)) {}
 
         virtual llvm::Value *codegen();
 
@@ -192,8 +202,8 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::VARIABLE_DEFINITION; }
 
-        VariableDefinition(std::string name, std::unique_ptr<Type> type, std::unique_ptr<Expression> Init) :
-                Statement(move(type)), Name(name), Value(std::move(Init)) {}
+        VariableDefinition(std::string name, std::unique_ptr<Expression> Init, std::unique_ptr<Type> type, FileLocation location) :
+                Statement(move(type), location), Name(name), Value(std::move(Init)) {}
 
         VariableDefinition(std::string name, std::unique_ptr<Type> type) : Statement(move(type)), Name(name) {}
 
@@ -209,15 +219,15 @@ namespace t {
         virtual NodeType getNodeType() const { return NodeType::IF_STATEMENT; }
 
         IfStatement(std::unique_ptr<Expression> Cond, std::vector<std::unique_ptr<Node>> Then,
-                    std::vector<std::unique_ptr<Node>> Else) :
-                Condition(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {};
+                    std::vector<std::unique_ptr<Node>> Else, FileLocation location) :
+                    Statement(location), Condition(move(Cond)), Then(move(Then)), Else(move(Else)) {};
 
         virtual llvm::Value *codegen();
 
         virtual void checkType();
     };
 
-    class ForLoop : public Node {
+    class ForLoop : public Statement {
         std::string VariableName;
         std::unique_ptr<Expression> Start, Condition, Step;
         std::vector<std::unique_ptr<Node>> Body;
@@ -225,13 +235,9 @@ namespace t {
         virtual NodeType getNodeType() const { return NodeType::FOR_LOOP; }
 
         ForLoop(std::string VariableName, std::unique_ptr<Expression> Start, std::unique_ptr<Expression> Condition,
-                std::unique_ptr<Expression> Step, std::vector<std::unique_ptr<Node>> Body) : VariableName(VariableName),
-                                                                                             Start(std::move(Start)),
-                                                                                             Condition(
-                                                                                                     std::move(
-                                                                                                             Condition)),
-                                                                                             Step(std::move(Step)),
-                                                                                             Body(std::move(Body)) {};
+                std::unique_ptr<Expression> Step, std::vector<std::unique_ptr<Node>> Body, FileLocation location) :
+                    Statement(location), VariableName(VariableName), Start(std::move(Start)), Condition( std::move(Condition)),
+                    Step(std::move(Step)),Body(std::move(Body)) {};
 
         virtual llvm::Value *codegen();
 
@@ -244,9 +250,8 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::WHILE_LOOP; }
 
-        WhileLoop(std::unique_ptr<Node> Condition, std::vector<std::unique_ptr<Node>> Body) : Condition(
-                std::move(Condition)),
-                                                                                              Body(std::move(Body)) {};
+        WhileLoop(std::unique_ptr<Node> Condition, std::vector<std::unique_ptr<Node>> Body, FileLocation location) :
+        Statement(location), Condition(std::move(Condition)),Body(std::move(Body)) {};
 
         virtual llvm::Value *codegen();
 
@@ -258,8 +263,7 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::RETURN; }
 
-        Return(std::unique_ptr<Expression> expression) :
-                Value(std::move(expression)) {};
+        Return(std::unique_ptr<Expression> expression, FileLocation location) : Statement(location), Value(std::move(expression)) {};
 
         virtual llvm::Value *codegen();
 
@@ -273,17 +277,17 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::FUNCTION; }
 
-        Function(const std::string name, std::shared_ptr<Type> type,
+        Function(const std::string name, std::shared_ptr<Type> type, FileLocation location,
                  std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments,
                  std::unique_ptr<Node> body) :
-                Name(name), Statement(move(type)), Arguments(move(arguments)) {
+                Name(name), Statement(move(type), location), Arguments(move(arguments)) {
             Body.push_back(std::move(body));
         };
 
-        Function(const std::string name, std::shared_ptr<Type> type,
+        Function(const std::string name, std::shared_ptr<Type> type, FileLocation location,
                  std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments,
                  std::vector<std::unique_ptr<Node>> body) :
-                Name(name), Statement(move(type)), Arguments(move(arguments)), Body(move(body)) {}
+                Name(name), Statement(move(type), location), Arguments(move(arguments)), Body(move(body)) {}
 
         virtual llvm::Value *codegen();
 
@@ -296,9 +300,9 @@ namespace t {
     public:
         virtual NodeType getNodeType() const { return NodeType::EXTERN; }
 
-        Extern(const std::string name, std::unique_ptr<Type> type,
+        Extern(const std::string name, std::unique_ptr<Type> type, FileLocation location,
                std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments) :
-                Name(name), Statement(move(type)), Arguments(move(arguments)) {}
+                Name(name), Statement(move(type), location), Arguments(move(arguments)) {}
 
         virtual llvm::Value *codegen();
 

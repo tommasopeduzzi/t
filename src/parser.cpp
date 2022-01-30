@@ -163,7 +163,7 @@ namespace t {
                 }
                 getNextToken(); // eat ']'
                 auto type = LHS->type;
-                LHS = std::make_unique<Indexing>(std::move(LHS), std::move(Index));
+                LHS = std::make_unique<Indexing>(std::move(LHS), std::move(Index), lexer->location);
                 LHS->type = type;   // set type of Indexing Operation to type of  the Object being indexed
             } else {
                 std::string Operator = std::get<std::string>(CurrentToken.value);
@@ -188,7 +188,7 @@ namespace t {
                     }
                 }
                 // Merge left and right
-                LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS));
+                LHS = std::make_unique<BinaryExpression>(Operator, std::move(LHS), std::move(RHS), lexer->location);
             }
         }
     }
@@ -228,7 +228,7 @@ namespace t {
             Body.push_back(std::move(Expression));
         }
         getNextToken();     //eat "end"
-        return std::make_unique<Function>(Name, std::move(Type),
+        return std::make_unique<Function>(Name, std::move(Type), lexer->location,
                                           std::move(Arguments),
                                           std::move(Body));
     }
@@ -255,7 +255,7 @@ namespace t {
         getNextToken();     // eat '->'
 
         auto Type = ParseType();
-        return std::make_unique<Extern>(Name, std::move(Type), std::move(Arguments));
+        return std::make_unique<Extern>(Name, std::move(Type), lexer->location, std::move(Arguments));
     }
 
     std::unique_ptr<IfStatement> Parser::ParseIfStatement() {
@@ -292,7 +292,7 @@ namespace t {
             }
         }
         getNextToken(); //eat 'end'
-        return std::make_unique<IfStatement>(std::move(Condition), std::move(Then), std::move(Else));
+        return std::make_unique<IfStatement>(std::move(Condition), std::move(Then), std::move(Else), lexer->location);
     }
 
     std::unique_ptr<ForLoop> Parser::ParseForLoop() {
@@ -344,7 +344,7 @@ namespace t {
         }
         getNextToken();     // eat 'end'
         return std::make_unique<ForLoop>(VariableName, std::move(StartValue), std::move(Condition), std::move(Step),
-                                         std::move(Body));
+                                         std::move(Body), lexer->location);
     }
 
     std::unique_ptr<WhileLoop> Parser::ParseWhileLoop() {
@@ -367,7 +367,7 @@ namespace t {
             Body.push_back(std::move(Expression));
         }
         getNextToken(); // eat 'end'
-        return std::make_unique<WhileLoop>(std::move(Condition), std::move(Body));
+        return std::make_unique<WhileLoop>(std::move(Condition), std::move(Body), lexer->location);
     }
 
     std::unique_ptr<VariableDefinition> Parser::ParseVariableDefinition() {
@@ -393,7 +393,7 @@ namespace t {
         if (!Init)
             return nullptr;     //error already logged
 
-        return std::make_unique<VariableDefinition>(Name, std::move(Type), std::move(Init));
+        return std::make_unique<VariableDefinition>(Name, std::move(Init), std::move(Type), lexer->location);
     }
 
     std::unique_ptr<Negative> Parser::ParseNegative() {
@@ -401,23 +401,23 @@ namespace t {
         auto Expression = ParseBinaryExpression();
         if (!Expression)
             return nullptr;
-        return std::make_unique<Negative>(std::move(Expression));
+        return std::make_unique<Negative>(std::move(Expression), lexer->location);
     }
 
     std::unique_ptr<Number> Parser::ParseNumber() {
-        auto number = std::make_unique<Number>(std::get<double>(CurrentToken.value));
+        auto number = std::make_unique<Number>(std::get<double>(CurrentToken.value), lexer->location);
         getNextToken(); // eat number
         return std::move(number);
     }
 
     std::unique_ptr<Bool> Parser::ParseBool() {
-        auto boolNode = std::make_unique<Bool>(std::get<bool>(CurrentToken.value));
+        auto boolNode = std::make_unique<Bool>(std::get<bool>(CurrentToken.value), lexer->location);
         getNextToken(); // eat bool
         return std::move(boolNode);
     }
 
     std::unique_ptr<String> Parser::ParseString() {
-        auto stringNode = std::make_unique<String>(std::get<std::string>(CurrentToken.value));
+        auto stringNode = std::make_unique<String>(std::get<std::string>(CurrentToken.value), lexer->location);
         getNextToken(); // eat string
         return std::move(stringNode);
     }
@@ -446,13 +446,13 @@ namespace t {
 
         if (CurrentToken != '(')
             // simple variable
-            return std::make_unique<Variable>(Name);
+            return std::make_unique<Variable>(Name, lexer->location);
 
         //function call
         getNextToken(); //eat '('
         std::vector<std::unique_ptr<Expression>> Arguments = ParseArguments();
 
-        return std::make_unique<Call>(Name, std::move(Arguments));
+        return std::make_unique<Call>(Name, std::move(Arguments), lexer->location);
     }
 
     std::unique_ptr<Return> Parser::ParseReturn() {
@@ -461,7 +461,7 @@ namespace t {
         if (!Expression)
             return nullptr;
 
-        return std::make_unique<Return>(std::move(Expression));
+        return std::make_unique<Return>(std::move(Expression), lexer->location);
     }
 
     std::vector<std::unique_ptr<Expression>> Parser::ParseArguments() {

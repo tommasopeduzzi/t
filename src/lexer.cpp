@@ -19,16 +19,17 @@ namespace t {
 
     Lexer::Lexer(std::string filePath) {
         file.open(filePath);
-        lineNo = 1;
+        location = {filePath, 1, 0};
     }
 
     char Lexer::getChar() {
         char c = file.get();
+        location.column++;
         if (file.eof()) {
             return EOF;
         }
         if (c == '\n') {
-            lineNo++;
+            location.line++;
         }
         return c;
     }

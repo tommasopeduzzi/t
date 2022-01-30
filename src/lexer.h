@@ -10,6 +10,11 @@
 #include <variant>
 
 namespace t {
+    struct FileLocation {
+        std::string file;
+        int line;
+        int column;
+    };
 
     enum class TokenType {
         EOF_TOKEN,
@@ -65,7 +70,7 @@ namespace t {
 
         char LastChar = ' ';
         std::ifstream file;
-        int lineNo;
+        FileLocation location;
 
         Token getToken();
 
