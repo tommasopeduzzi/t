@@ -15,8 +15,7 @@ namespace t {
 
     llvm::Type *Type::GetLLVMType() const {
         if (type.empty()) {
-            LogError("Type is not set");
-            exit(1);
+            assert(false);
         }
         if (type == "number")
             return llvm::Type::getDoubleTy(*Context);
@@ -67,14 +66,18 @@ namespace t {
     }
 
     void Variable::checkType() {
-        type = Symbols.GetVariable(Name).type;
+        auto variable = Symbols.GetVariable(Name);
+        if (variable.type == nullptr && variable.address == nullptr) {
+            LogError(location, "Variable " + Name + " not found!");
+        }
+        type = variable.type;
     }
 
     void Indexing::checkType() {
         Object->checkType();
         Index->checkType();
         if (Index->type != make_shared<Type>("number")) {
-            LogError("Index must be a number");
+            LogError(location, "Index must be a number");
             exit(1);
         }
         type = make_shared<Type>(*(Object->type));
@@ -83,11 +86,14 @@ namespace t {
 
     void Call::checkType() {
         auto function = Symbols.GetFunction(Callee);
+        if (function.type == nullptr && function.function == nullptr) {
+            LogError(location, "Function " + Callee + " not found!");
+        }
         auto arguments = function.arguments;
         for (int i = 0; i < Arguments.size(); i++) {
             Arguments[i]->checkType();
             if (arguments[i].type != Arguments[i]->type) {
-                LogError("Wrong type of argument");
+                LogError(location, "Wrong type of argument");
                 exit(1);
             }
         }
@@ -99,7 +105,7 @@ namespace t {
         RHS->checkType();
 
         if (LHS->type != RHS->type) {
-            LogError("Type mismatch");
+            LogError(location, "Type mismatch");
             exit(1);
         }
 
@@ -112,7 +118,7 @@ namespace t {
         if (Value) {
             Value->checkType();
             if (Value->type != type) {
-                LogError("Value Type and Variable Type mismatch");
+                LogError(location, "Value Type and Variable Type mismatch");
                 exit(1);
             }
         }
@@ -137,7 +143,7 @@ namespace t {
     void ForLoop::checkType() {
         Start->checkType();
         if (Start->type != make_shared<Type>("number")) {
-            LogError("Start must be a number");
+            LogError(location, "Start-Value for Stepper in For-Loop must be a number");
             exit(1);
         }
         Symbols.CreateScope();
@@ -145,7 +151,7 @@ namespace t {
         Condition->checkType(); // TODO: check if condition is boolean
         Step->checkType();
         if (Step->type != make_shared<Type>("number")) {
-            LogError("Step must be a number");
+            LogError(location, "Step-Value for stepper must be a number");
             exit(1);
         }
         //TODO: make start and step type changeable and check if the type of the step is compatible with the type of the start (they have to be equal)

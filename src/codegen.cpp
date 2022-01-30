@@ -99,10 +99,9 @@ namespace t {
     Value *Call::codegen() {
         llvm::Function *function = Module->getFunction(Callee);
         if (!function)
-            return LogError("Function not defined!");
+            return LogError(location, "Function not defined!");
         if (function->arg_size() != Arguments.size())
-            return LogError(
-                    "Number of Arguments given does not match the number of arguments of the function.");
+            return LogError(location, "Number of Arguments given does not match the number of arguments of the function.");
         vector<Value *> ArgumentValues = {};
         for (int i = 0; i < Arguments.size(); i++) {
             auto value = Arguments[i]->codegen();
@@ -129,7 +128,7 @@ namespace t {
         auto R = RHS->codegen();
 
         if (!L || !R)
-            return LogError("Error Parsing BinaryExpression");
+            return nullptr;
         if (Op == "+")
             return Builder->CreateFAdd(L, R);
         else if (Op == "-")
@@ -149,7 +148,7 @@ namespace t {
         else if (Op == "==")
             return Builder->CreateFCmpOEQ(L, R);
         else
-            return LogError("Unrecognized Operator.");
+            return LogError(location, "Unrecognized Operator.");
     }
 
     Value *Return::codegen() {
@@ -310,7 +309,7 @@ namespace t {
         }
 
         if (!Function->empty())
-            return LogError("Can't redefine Function");
+            return LogError(location, "Can't redefine Function");
 
         //Define BasicBlock to start inserting into for function
         BasicBlock *BasicBlock = BasicBlock::Create(*Context, "entry", Function);

@@ -67,7 +67,7 @@ namespace t {
 
     std::unique_ptr<Type> Parser::ParseType() {
         if (CurrentToken.type != TokenType::TYPE) {
-            LogErrorLineNo("Expected type!");
+            LogError(lexer->location, "Expected type!");
             exit(1);
         }
         auto TypeString = std::get<std::string>(CurrentToken.value);
@@ -75,14 +75,15 @@ namespace t {
         int size = 1;
         if (CurrentToken == '[') {
             getNextToken();
+            // FIXME: handle dynamic array sizes
             if (CurrentToken.type != TokenType::NUMBER) {
-                LogErrorLineNo("Expected int!");
+                LogError(lexer->location, "Expected int!");
                 exit(1);
             }
             size = (int) std::get<double>(CurrentToken.value);
             getNextToken();
             if (CurrentToken != ']') {
-                LogErrorLineNo("Expected )!");
+                LogError(lexer->location, "Expected ]!");
                 exit(1);
             }
             getNextToken();     // eat ']
@@ -127,8 +128,8 @@ namespace t {
             case TokenType::STRING:
                 return ParseString();
             default:
-                LogErrorLineNo("Unexpected Token");
-                getNextToken();
+                LogError(lexer->location, "Unexpected Token");
+                getNextToken(); // eat unexpected Token
                 return nullptr;
         }
     }
@@ -158,7 +159,7 @@ namespace t {
                     return nullptr;
                 }
                 if (CurrentToken != ']') {
-                    LogErrorLineNo("Expected ']'!");
+                    LogError(lexer->location, "Expected ']'!");
                     return nullptr;
                 }
                 getNextToken(); // eat ']'
@@ -197,21 +198,21 @@ namespace t {
         getNextToken();     // eat 'def'
 
         if (CurrentToken.type != TokenType::IDENTIFIER) {
-            LogErrorLineNo("Expected Identifier");
+            LogError(lexer->location, "Expected Identifier");
             return nullptr;
         }
         std::string Name = std::get<std::string>(CurrentToken.value);
 
         getNextToken(); // eat Identifier
         if (CurrentToken != '(') {
-            LogErrorLineNo("expected Parentheses");
+            LogError(lexer->location, "expected Parentheses");
             return nullptr;
         }
         getNextToken();     // eat '('
         auto Arguments = ParseArgumentDefinition();
 
         if (CurrentToken.type != TokenType::OPERATOR) {
-            LogErrorLineNo("Expected '->'!");
+            LogError(lexer->location, "Expected '->'!");
             return nullptr;
         }
         getNextToken();     // eat '->'
@@ -237,19 +238,19 @@ namespace t {
         getNextToken(); // eat 'extern'
 
         if (CurrentToken.type != TokenType::IDENTIFIER) {
-            LogErrorLineNo("Expected Identifier");
+            LogError(lexer->location, "Expected Identifier");
             return nullptr;
         }
         std::string Name = std::get<std::string>(CurrentToken.value);
         getNextToken(); // eat Identifier
         if (CurrentToken != '(') {
-            LogErrorLineNo("expected Parentheses");
+            LogError(lexer->location, "expected Parentheses");
             return nullptr;
         }
         getNextToken(); // eats '('
         auto Arguments = ParseArgumentDefinition();
         if (CurrentToken.type != TokenType::OPERATOR) {
-            LogErrorLineNo("Expected '->'!");
+            LogError(lexer->location, "Expected '->'!");
             return nullptr;
         }
         getNextToken();     // eat '->'
@@ -266,7 +267,7 @@ namespace t {
             return nullptr;
 
         if (CurrentToken.type != TokenType::DO_TOKEN) {
-            LogErrorLineNo("Expected 'then' after if condition. ");
+            LogError(lexer->location, "Expected 'then' after if condition. ");
             return nullptr;
         }
         getNextToken();     // eat 'then'
@@ -299,7 +300,7 @@ namespace t {
         getNextToken(); // eat "for"
 
         if (CurrentToken.type != TokenType::IDENTIFIER) {
-            LogErrorLineNo("Expected identifier after 'for'!");
+            LogError(lexer->location, "Expected identifier after 'for'!");
             return nullptr;
         }
         std::string VariableName = std::get<std::string>(CurrentToken.value);
@@ -313,7 +314,7 @@ namespace t {
             }
         }
         if (CurrentToken != ',') {
-            LogErrorLineNo("Expected ',' after 'for'!");
+            LogError(lexer->location, "Expected ',' after 'for'!");
             return nullptr;
         }
         getNextToken();     // eat ','
@@ -329,7 +330,7 @@ namespace t {
                 return nullptr;
         }
         if (CurrentToken.type != TokenType::DO_TOKEN) {
-            LogErrorLineNo("Expected 'then' after for loop declaration!");
+            LogError(lexer->location, "Expected 'then' after for loop declaration!");
             return nullptr;
         }
         getNextToken();     // eat 'do'
@@ -355,7 +356,7 @@ namespace t {
             return nullptr;
 
         if (CurrentToken.type != TokenType::DO_TOKEN) {
-            LogErrorLineNo("Expected 'then' after while declaration");
+            LogError(lexer->location, "Expected 'then' after while declaration");
             return nullptr;
         }
         getNextToken();     // eat 'then'
@@ -376,7 +377,7 @@ namespace t {
         auto Type = ParseType();
 
         if (CurrentToken.type != TokenType::IDENTIFIER) {
-            LogErrorLineNo("Expected identifier after type!");
+            LogError(lexer->location, "Expected identifier after type!");
             return nullptr;
         }
 
@@ -427,12 +428,11 @@ namespace t {
         auto value = ParseBinaryExpression();
 
         if (!value) {
-            LogErrorLineNo("Error with Parentheses expression");
             return nullptr;
         }
 
         if (CurrentToken != ')') {
-            LogErrorLineNo("Expected ')' ");
+            LogError(lexer->location, "Expected ')' ");
             return nullptr;
         }
         getNextToken();
@@ -474,7 +474,7 @@ namespace t {
             if (auto Argument = ParseBinaryExpression()) {
                 Arguments.push_back(std::move(Argument));
             } else {
-                LogErrorLineNo("Invalid Arguments");
+                LogError(lexer->location, "Invalid Arguments");
                 return {};
             }
 
@@ -484,7 +484,7 @@ namespace t {
                 getNextToken(); // eat ')'
                 break;          // we are done, end of the arguments
             } else {
-                LogErrorLineNo("Unexpected character");
+                LogError(lexer->location, "Unexpected character");
                 return {};
             }
         }
@@ -500,7 +500,7 @@ namespace t {
         while (CurrentToken.type == TokenType::TYPE) {
             auto Type = ParseType();
             if (CurrentToken.type != TokenType::IDENTIFIER) {
-                LogErrorLineNo("Expected identifier after type!");
+                LogError(lexer->location, "Expected identifier after type!");
                 return {};
             }
             auto Name = std::get<std::string>(CurrentToken.value);
@@ -512,7 +512,7 @@ namespace t {
                 getNextToken(); // eat ')'
                 break;          // we are done, end of the arguments
             } else {
-                LogErrorLineNo("Unexpected character");
+                LogError(lexer->location, "Unexpected Token");
                 return {};
             }
         }

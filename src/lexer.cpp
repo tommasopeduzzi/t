@@ -30,6 +30,7 @@ namespace t {
         }
         if (c == '\n') {
             location.line++;
+            location.column = 0;
         }
         return c;
     }
@@ -100,7 +101,7 @@ namespace t {
             do {
                 if (LastChar == '.') {
                     if (decimal) {
-                        LogError(&"Unexpected character: "[LastChar]);     //TODO: Errors and shit
+                        LogError(location, &"Unexpected character: "[LastChar]);     //TODO: Errors and shit
                         return {TokenType::ERROR};
                     }
                     decimal = true;

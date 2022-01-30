@@ -52,22 +52,20 @@ namespace t {
             Functions[name] = {returnType, args, function};
         }
 
-        Variable GetVariable(std::string name) {
+        Variable GetVariable(string name) {
             for (auto Scope: Variables) {
                 auto it = Scope.find(name);
                 if (it != Scope.end())
                     return Scope[name];
             }
-            LogError("Variable " + name + " not found");
-            exit(1);
+            return {nullptr, nullptr};
         }
 
         Function GetFunction(std::string name) {
             auto it = Functions.find(name);
             if (it != Functions.end())
                 return Functions[name];
-            LogError("Function " + name + " not found");
-            exit(1);
+            return {nullptr, {}, nullptr};
         }
 
     };
