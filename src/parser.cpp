@@ -53,11 +53,13 @@ namespace t {
             std::cerr << "Expected string after import!\n";
             return;
         }
-        std::string fileName = std::get<std::string>(CurrentToken.value);
+        std::string filePath = get<std::string>(CurrentToken.value);
+        if(!filesystem::path(filePath).is_absolute())
+            filePath = filesystem::canonical(lexer->location.file + "/" + filePath).string();
         getNextToken();     // eat string
         auto parser = std::make_unique<Parser>();
-        if (ImportedFiles.find(fileName) == ImportedFiles.end()) {
-            parser->ParseFile(fileName, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
+        if (ImportedFiles.find(filePath) == ImportedFiles.end()) {
+            parser->ParseFile(filePath, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
         }
     }
 

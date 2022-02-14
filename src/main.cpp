@@ -20,6 +20,7 @@
 #include "lexer.h"
 #include "codegen.h"
 #include <chrono>
+#include <filesystem>
 
 using namespace std;
 using namespace llvm;
@@ -42,8 +43,9 @@ int main(int argc, char* argv[]) {
     InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
     unique_ptr<Parser> parser = make_unique<Parser>();
-    ImportedFiles.insert(argv[1]);
-    parser->ParseFile(argv[1], FunctionDeclarations, TopLevelExpressions, ImportedFiles);
+    string absPath = filesystem::absolute(argv[1]); // get absolute path relative to the cwd
+    ImportedFiles.insert(absPath);
+    parser->ParseFile(absPath, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
     TypeCheck();
     RunEntry();
 }
@@ -57,6 +59,7 @@ void TypeCheck(){
         node->checkType();
     }
 }
+
 void RunEntry(){
     Symbols.Reset();
     auto entryFunction = make_unique<t::Function>("entry", move(make_shared<t::Type>("number")), FileLocation(),
