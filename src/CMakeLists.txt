@@ -23,7 +23,5 @@ set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp passes.cpp 
 # Add executable target with source files listed in SOURCE_FILES variable
 add_executable(t ${SOURCE_FILES})
 llvm_map_components_to_libnames(llvm_libs support core irreader executionengine native codegen orcjit orcshared orctargetprocess)
-execute_process(COMMAND llvm-config --libs OUTPUT_VARIABLE libraries)
-string(STRIP ${libraries} libraries)
 target_link_libraries(t  ${llvm_libs})
 #target_link_libraries(t corefn)
