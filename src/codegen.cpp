@@ -361,4 +361,9 @@ namespace t {
         assert(false && "Assembly not implemented yet");
         return nullptr;
     }
+
+    Value *Structure::codegen() {
+        assert(false && "Structure not implemented yet");
+        return nullptr;
+    }
 }

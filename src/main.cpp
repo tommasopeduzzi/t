@@ -32,6 +32,7 @@ void registerCoreFunctions(unique_ptr<orc::LLJIT>& JIT);
 
 ExitOnError ExitOnErr;
 vector<unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
+vector<unique_ptr<Structure>> Structures;
 set<string> ImportedFiles;
 
 int main(int argc, char* argv[]) {
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
     unique_ptr<Parser> parser = make_unique<Parser>();
     string absPath = filesystem::absolute(argv[1]); // get absolute path relative to the cwd
     ImportedFiles.insert(absPath);
-    parser->ParseFile(absPath, FunctionDeclarations, TopLevelExpressions, ImportedFiles);
+    parser->ParseFile(absPath, FunctionDeclarations, TopLevelExpressions, Structures, ImportedFiles);
     TypeCheck();
     RunEntry();
 }
@@ -66,6 +67,12 @@ void RunEntry(){
                                                     vector<pair<shared_ptr<t::Type>,string>>(),
                                                     move(TopLevelExpressions));
     for(auto &Decl : FunctionDeclarations){
+        if(auto IR = Decl->codegen()){
+            // IR->print(errs());
+            fprintf(stderr, "\n");
+        }
+    }
+    for(auto &Decl : Structures){
         if(auto IR = Decl->codegen()){
             // IR->print(errs());
             fprintf(stderr, "\n");

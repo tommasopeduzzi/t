@@ -35,10 +35,13 @@ namespace t {
         unique_ptr<Lexer> lexer;
 
         void ParseFile(string filePath, vector<unique_ptr<Node>> &FunctionDeclarations,
-                       vector<unique_ptr<Node>> &TopLevelExpressions, set<string> &ImportedFiles);
+                       vector<unique_ptr<Node>> &TopLevelExpressions,
+                       vector<unique_ptr<Structure>> &Structures,
+                       set<string> &ImportedFiles);
 
         void HandleImport(vector<unique_ptr<Node>> &FunctionDeclarations,
                           vector<unique_ptr<Node>> &TopLevelExpressions,
+                          vector<unique_ptr<Structure>> &Structures,
                           set<string> &ImportedFiles);
 
         unique_ptr<Node> PrimaryParse();
@@ -83,6 +86,7 @@ namespace t {
 
         unique_ptr<Assembly> ParseAssembly();
 
+        unique_ptr<Structure> ParseStructure();
     };
 
     int getOperatorPrecedence(string Operator);

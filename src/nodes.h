@@ -8,6 +8,7 @@
 #include "lexer.h"
 #include <memory>
 #include <vector>
+#include <map>
 #include <string>
 #include <llvm/IR/Value.h>
 
@@ -34,7 +35,8 @@ namespace t {
         RETURN,
         FUNCTION,
         EXTERN,
-        ASSEMBLY
+        ASSEMBLY,
+        STRUCTURE
     };
 
     class Node {
@@ -322,4 +324,19 @@ namespace t {
 
         virtual void checkType();
     };
+
+    class Structure : public Statement {
+        std::string Name;
+        map<string, unique_ptr<Type>> Members;
+    public:
+        virtual NodeType getNodeType() const { return NodeType::STRUCTURE; }
+
+        Structure(string Name, map<string, unique_ptr<Type>> members, FileLocation location) :
+                Statement(location), Members(move(members)), Name(Name) {}
+
+        virtual llvm::Value *codegen();
+
+        virtual void checkType();
+    };
+
 }

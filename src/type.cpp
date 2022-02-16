@@ -69,6 +69,7 @@ namespace t {
         auto variable = Symbols.GetVariable(Name);
         if (variable.type == nullptr && variable.address == nullptr) {
             LogError(location, "Variable " + Name + " not found!");
+            exit(1);
         }
         type = variable.type;
     }
@@ -200,5 +201,9 @@ namespace t {
 
     void Assembly::checkType() {
         type = make_shared<Type>("void");
+    }
+
+    void Structure::checkType() {
+        type = make_shared<Type>(Name);
     }
 }

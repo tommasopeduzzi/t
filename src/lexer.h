@@ -31,6 +31,7 @@ namespace t {
         DO_TOKEN,
         END_TOKEN,
         OF_TOKEN,
+        STRUCT_TOKEN,
         TYPE,
         OPERATOR,
         IDENTIFIER,
@@ -44,13 +45,6 @@ namespace t {
     struct Token {
         TokenType type;
         std::variant<std::string, double, bool> value;
-    };
-
-    const std::set<std::string> Types{
-            "number",
-            "bool",
-            "string",
-            "void"
     };
 
     const std::set<std::string> Operators{
@@ -68,6 +62,13 @@ namespace t {
     class Lexer {
     public:
         Lexer(std::string filePath);
+
+        std::set<std::string> Types{
+                "number",
+                "bool",
+                "string",
+                "void"
+        };
 
         char LastChar = ' ';
         std::ifstream file;
