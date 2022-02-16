@@ -86,7 +86,41 @@ namespace t {
             std::string Value = "";
             LastChar = getChar();
             while (LastChar != '"' && LastChar != EOF) {
-                Value += LastChar;
+                if (LastChar == '\\'){
+                    LastChar = getChar();
+                    switch(LastChar){
+                        case 'a':
+                            Value += '\a';
+                            break;
+                        case 'b':
+                            Value += '\b';
+                            break;
+                        case 'n':
+                            Value += '\n';
+                            break;
+                        case 't':
+                            Value += '\t';
+                            break;
+                        case 'v':
+                            Value += '\v';
+                            break;
+                        case 'r':
+                            Value += '\r';
+                            break;
+                        case 'f':
+                            Value += '\f';
+                            break;
+                        case 'e':
+                            Value += (char)27;
+                            break;
+                        default:
+                            Value += LastChar;
+                            break;
+                    }
+                }
+                else{
+                    Value += LastChar;
+                }
                 LastChar = getChar();
             }
             LastChar = getChar();
