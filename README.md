@@ -25,12 +25,12 @@ You can find the docs in the [Docs.md](docs/index.md) file.
   - [x] Booleans
   - [x] Lists
 - [ ] Standard Library
-  - [x] Call into C-Functions
+  - [ ] ASM Block
   - [ ] Math
   - [ ] String
   - [ ] IO
   - [ ] Random
   - [ ] Time
-- [ ] Better Errors
-- [ ] Documentation
+- [x] Better Errors
+- [x] Documentation
 - [x] Type checking (kinda)

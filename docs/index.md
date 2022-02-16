@@ -1,16 +1,14 @@
 # The t Programming Language
 
 ## The Why
-I was curious Because I want the language to be more or less platform-independent and because of the ease-of-use, the compiler uses llvm as its backend.
-The [Kaleidoscope Tutorial](https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/) served as a basis for this project. I added features to it and used my own syntax. 
-My goal with this language is to be able to teach others how to solve problems instead of writing code, so it should be as simple as possible.
+I was curious on how compilers work, so I decided to build my own one. **This language is in currently a WIP. Please don't use it for any serious projects, I don't want to disappoint you.**
 
 ## Language basics
 ### Types
-Currently there are 4 fundamental types, three of them with their own literals:
+Currently, there are 4 fundamental types, three of them with their own literals:
 - `number`: a number stored as a C `double`
-- `string`: a string of characters stored in an equivalent form of C `char*`.
-  - Can be initialized with a string literal or a string literal expression (text surrounded by `"`).
+- `string`: a string of characters stored as a null-terminated string.
+  - Can be initialized with a string literal or a string literal expression (text surrounded by `"`). Strings support all ASCII escape sequences.
 - `bool`: a boolean
   - Has a value of either `true` or `false`
 - `void`: void type
@@ -29,8 +27,8 @@ var bool y = true
 var string z = "Hello World!"
 ```
 ### Conditional Statements
-Conditials in t are in the form `if-else` statements.
-A If-Else-Statement is structured as follows: 
+Conditionals in t are in the form `if-else` statements.
+An If-Else-Statement is structured as follows: 
 <pre>
 <b>if</b> condition <b>do</b> 
   statement(s) 
