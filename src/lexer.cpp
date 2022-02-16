@@ -52,6 +52,8 @@ namespace t {
                 return {TokenType::DEF_TOKEN};
             else if (Token == "extern")
                 return {TokenType::EXTERN_TOKEN};
+            else if (Token == "asm")
+                return {TokenType::ASM_TOKEN};
             else if (Token == "return")
                 return {TokenType::RETURN_TOKEN};
             else if (Token == "end")

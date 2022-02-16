@@ -197,4 +197,8 @@ namespace t {
         Symbols.CreateFunction(Name, type, Arguments);
         // type = make_shared<Type>("void"); // TODO: make the type of this node irrelevant in codegenning, so we can correctly save the type of this node
     }
+
+    void Assembly::checkType() {
+        type = make_shared<Type>("void");
+    }
 }

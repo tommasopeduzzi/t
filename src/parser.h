@@ -81,6 +81,8 @@ namespace t {
 
         unique_ptr<Type> ParseType();
 
+        unique_ptr<Assembly> ParseAssembly();
+
     };
 
     int getOperatorPrecedence(string Operator);

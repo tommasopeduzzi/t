@@ -33,7 +33,8 @@ namespace t {
         WHILE_LOOP,
         RETURN,
         FUNCTION,
-        EXTERN
+        EXTERN,
+        ASSEMBLY
     };
 
     class Node {
@@ -303,6 +304,19 @@ namespace t {
         Extern(const std::string name, std::unique_ptr<Type> type, FileLocation location,
                std::vector<std::pair<std::shared_ptr<Type>, std::string>> arguments) :
                 Name(name), Statement(move(type), location), Arguments(move(arguments)) {}
+
+        virtual llvm::Value *codegen();
+
+        virtual void checkType();
+    };
+
+    class Assembly : public Statement {
+        std::string AssemblyCode;
+    public:
+        virtual NodeType getNodeType() const { return NodeType::ASSEMBLY; }
+
+        Assembly(const std::string assemblyCode, FileLocation location) :
+                Statement(location), AssemblyCode(assemblyCode) {}
 
         virtual llvm::Value *codegen();
 

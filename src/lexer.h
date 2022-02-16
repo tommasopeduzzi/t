@@ -21,6 +21,7 @@ namespace t {
         DEF_TOKEN,
         IMPORT_TOKEN,
         EXTERN_TOKEN,
+        ASM_TOKEN,
         VAR_TOKEN,
         RETURN_TOKEN,
         IF_TOKEN,

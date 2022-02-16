@@ -110,6 +110,8 @@ namespace t {
                 return ParseForLoop();
             case TokenType::WHILE_TOKEN:
                 return ParseWhileLoop();
+            case TokenType::ASM_TOKEN:
+                return ParseAssembly();
             default:
                 return ParseBinaryExpression();
         }
@@ -439,6 +441,17 @@ namespace t {
         }
         getNextToken();
         return std::move(value);
+    }
+
+    unique_ptr<Assembly> Parser::ParseAssembly(){
+        getNextToken(); // eat 'asm'
+        if (CurrentToken.type != TokenType::STRING){
+            LogError(lexer->location, "Expected string after 'asm'");
+            exit(1);
+        }
+        auto assembly = std::make_unique<Assembly>(std::get<std::string>(CurrentToken.value), lexer->location);
+        getNextToken(); // eat string
+        return std::move(assembly);
     }
 
     std::unique_ptr<Expression> Parser::ParseIdentifier() {

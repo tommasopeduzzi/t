@@ -356,4 +356,9 @@ namespace t {
         Symbols.CreateFunction(Name, type, Arguments, Function);
         return Function;
     }
+
+    Value *Assembly::codegen() {
+        assert(false && "Assembly not implemented yet");
+        return nullptr;
+    }
 }
