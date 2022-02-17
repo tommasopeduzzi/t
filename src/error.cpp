@@ -16,4 +16,10 @@ namespace t {
             << RED << "Error: "<< RESET<<  message << endl;
         return nullptr;
     }
+
+    llvm::Value *LogError(const string message) {
+        cout << RED << "Error: "<< RESET<<  message << endl;
+        return nullptr;
+    }
+
 }

@@ -9,4 +9,5 @@
 
 namespace t{
     llvm::Value *LogError(const FileLocation location, string message);
+    llvm::Value *LogError(string message);
 }

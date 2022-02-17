@@ -431,7 +431,7 @@ namespace t {
     }
 
     unique_ptr<Structure> Parser::ParseStructure() {
-        map<string, unique_ptr<Type>> Members = {};
+        map<string, shared_ptr<Type>> Members = {};
         getNextToken(); // eat 'struct'
         if (CurrentToken.type != TokenType::IDENTIFIER) {
             LogError(lexer->location, "Expected identifier after 'struct'!");

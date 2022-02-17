@@ -25,8 +25,14 @@ namespace t {
             return llvm::Type::getInt1Ty(*Context);
         else if (type == "void")
             return llvm::Type::getVoidTy(*Context);
-        else
-            assert(false && "Unknown type");
+        else{
+            auto Structure = Symbols.GetStructure(type);
+            if (Structure.members.empty() && Structure.type == nullptr) {
+                LogError("Unknown type '" + type + "'");
+                exit(1);
+            }
+            return Structure.type;
+        }
     }
 
     bool operator==(Type &lhs, Type &rhs) {

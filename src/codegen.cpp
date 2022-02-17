@@ -6,6 +6,7 @@
 #include "error.h"
 #include <map>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
 #include "type.h"
 #include "symbols.h"
 
@@ -362,8 +363,13 @@ namespace t {
         return nullptr;
     }
 
-    Value *Structure::codegen() {
-        assert(false && "Structure not implemented yet");
-        return nullptr;
+    llvm::Value *Structure::codegen() {
+        vector<llvm::Type *> Types;
+        for (auto &Member: Members) {
+            auto Type = Member.second->GetLLVMType();
+            Types.push_back(Type);
+        }
+        auto *StructType = llvm::StructType::create(Types, Name);
+        Symbols.CreateStructure(Name, Members, StructType);
     }
 }

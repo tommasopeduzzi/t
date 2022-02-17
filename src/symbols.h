@@ -22,9 +22,14 @@ namespace t {
             vector<Argument> arguments;
             llvm::Function *function;
         };
+        struct Structure{
+            map<string, shared_ptr<Type>> members;
+            llvm::StructType *type;
+        };
 
         vector<map<string, Variable>> Variables;
         map<string, Function> Functions;
+        map<string, Structure> Structures;
     public:
         void Reset() {
             Variables = vector<map<string, Variable>>();
@@ -52,6 +57,10 @@ namespace t {
             Functions[name] = {returnType, args, function};
         }
 
+        void CreateStructure(string name, map<string, shared_ptr<Type>> members, llvm::StructType *type) {
+            Structures[name] = {members, type};
+        }
+
         Variable GetVariable(string name) {
             for (auto Scope: Variables) {
                 auto it = Scope.find(name);
@@ -66,6 +75,13 @@ namespace t {
             if (it != Functions.end())
                 return Functions[name];
             return {nullptr, {}, nullptr};
+        }
+
+        Structure GetStructure(std::string name) {
+            auto it = Structures.find(name);
+            if (it != Structures.end())
+                return Structures[name];
+            return {map<string, shared_ptr<Type>>(), nullptr};
         }
 
     };

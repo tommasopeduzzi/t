@@ -326,12 +326,13 @@ namespace t {
     };
 
     class Structure : public Statement {
-        std::string Name;
-        map<string, unique_ptr<Type>> Members;
     public:
+        std::string Name;
+        map<string, shared_ptr<Type>> Members;
+
         virtual NodeType getNodeType() const { return NodeType::STRUCTURE; }
 
-        Structure(string Name, map<string, unique_ptr<Type>> members, FileLocation location) :
+        Structure(string Name, map<string, shared_ptr<Type>> members, FileLocation location) :
                 Statement(location), Members(move(members)), Name(Name) {}
 
         virtual llvm::Value *codegen();
