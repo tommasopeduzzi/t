@@ -55,6 +55,9 @@ int main(int argc, char* argv[]) {
 
 void TypeCheck(){
     Symbols.CreateScope();
+    for (auto& structure : Structures) {
+        structure->checkType();
+    }
     for(auto& node : FunctionDeclarations){
         node->checkType();
     }
@@ -92,7 +95,7 @@ void RunEntry(){
         PB.registerLoopAnalyses(LAM);
         PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-        ModulePassManager MPM; // TODO: figure out a way to add the default pipeline after the fact.
+        ModulePassManager MPM;
 
         if (DEBUG_PRINT_LLVM_IR)
             MPM.addPass(PrintModulePass());MPM.addPass(createModuleToFunctionPassAdaptor(RemoveEmptyBasicBlocksPass()));

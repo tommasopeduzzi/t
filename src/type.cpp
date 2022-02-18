@@ -210,6 +210,24 @@ namespace t {
     }
 
     void Structure::checkType() {
-        type = make_shared<Type>(Name);
+        type = make_shared<Type>("void");
+        Symbols.CreateStructure(Name, Members, nullptr);
+    }
+
+    void Member::checkType() {
+        Object->checkType();
+        auto Structure = Symbols.GetStructure(Object->type->type);
+        if (Structure.members == vector<pair<string, shared_ptr<Type>>>() &&  Structure.type == nullptr) {
+            LogError(location, "Object is not a structure");
+            exit(1);
+        }
+        for (auto& Member : Structure.members){
+            if (Member.first == Name) {
+                type = move(Member.second);
+                return;
+            }
+        }
+        LogError(location, "Member not found");
+        exit(1);
     }
 }

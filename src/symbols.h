@@ -23,7 +23,7 @@ namespace t {
             llvm::Function *function;
         };
         struct Structure{
-            map<string, shared_ptr<Type>> members;
+            vector<pair<string, shared_ptr<Type>>> members;
             llvm::StructType *type;
         };
 
@@ -57,7 +57,7 @@ namespace t {
             Functions[name] = {returnType, args, function};
         }
 
-        void CreateStructure(string name, map<string, shared_ptr<Type>> members, llvm::StructType *type) {
+        void CreateStructure(string name, vector<pair<string, shared_ptr<Type>>> members, llvm::StructType *type) {
             Structures[name] = {members, type};
         }
 
@@ -81,7 +81,7 @@ namespace t {
             auto it = Structures.find(name);
             if (it != Structures.end())
                 return Structures[name];
-            return {map<string, shared_ptr<Type>>(), nullptr};
+            return {vector<pair<string, shared_ptr<Type>>>(), nullptr};
         }
 
     };

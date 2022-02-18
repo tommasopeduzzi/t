@@ -36,7 +36,8 @@ namespace t {
         FUNCTION,
         EXTERN,
         ASSEMBLY,
-        STRUCTURE
+        STRUCTURE,
+        MEMBER,
     };
 
     class Node {
@@ -161,6 +162,22 @@ namespace t {
 
         Indexing(unique_ptr<Expression> object, unique_ptr<Expression> index, FileLocation location) :
             Expression(location), Object(move(object)), Index(move(index)) {}
+
+        virtual llvm::Value *codegen();
+
+        virtual void checkType();
+
+        virtual pair<llvm::Value *, llvm::Type *> getAddressAndType();
+    };
+
+    class Member : public Expression {
+        unique_ptr<Expression> Object;
+        string Name;
+    public:
+        virtual NodeType getNodeType() const { return NodeType::MEMBER; }
+
+        Member(unique_ptr<Expression> object, string name, FileLocation location) :
+            Expression(location), Object(move(object)), Name(name) {}
 
         virtual llvm::Value *codegen();
 
@@ -328,11 +345,11 @@ namespace t {
     class Structure : public Statement {
     public:
         std::string Name;
-        map<string, shared_ptr<Type>> Members;
+        vector<pair<string, shared_ptr<Type>>> Members;
 
         virtual NodeType getNodeType() const { return NodeType::STRUCTURE; }
 
-        Structure(string Name, map<string, shared_ptr<Type>> members, FileLocation location) :
+        Structure(string Name, vector<pair<string, shared_ptr<Type>>> members, FileLocation location) :
                 Statement(location), Members(move(members)), Name(Name) {}
 
         virtual llvm::Value *codegen();

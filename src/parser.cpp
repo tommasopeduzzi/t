@@ -151,8 +151,7 @@ namespace t {
         return ParseBinaryOperatorRHS(0, move(LHS));
     }
 
-    unique_ptr<Expression>
-    Parser::ParseBinaryOperatorRHS(int expressionPrecedence, unique_ptr<Expression> LHS) {
+    unique_ptr<Expression> Parser::ParseBinaryOperatorRHS(int expressionPrecedence, unique_ptr<Expression> LHS) {
         while (true) {
             if (!holds_alternative<string>(CurrentToken.value)) {
                 return LHS; // it's not a binary operator, because it's value is not string
@@ -173,7 +172,17 @@ namespace t {
                 auto type = LHS->type;
                 LHS = make_unique<Indexing>(move(LHS), move(Index), lexer->location);
                 LHS->type = type;   // set type of Indexing Operation to type of  the Object being indexed
-            } else {
+            }else if (CurrentToken == '.') {
+                getNextToken(); // eat '.'
+                if (CurrentToken.type != TokenType::IDENTIFIER) {
+                    LogError(lexer->location, "Expected identifier!");
+                    return nullptr;
+                }
+                string member = get<string>(CurrentToken.value);
+                getNextToken(); // eat identifier
+                LHS = make_unique<Member>(move(LHS), member, lexer->location);
+            }
+            else {
                 string Operator = get<string>(CurrentToken.value);
                 int TokenPrecedence = getOperatorPrecedence(Operator);
 
@@ -431,7 +440,7 @@ namespace t {
     }
 
     unique_ptr<Structure> Parser::ParseStructure() {
-        map<string, shared_ptr<Type>> Members = {};
+        vector<pair<string, shared_ptr<Type>>> Members = {};
         getNextToken(); // eat 'struct'
         if (CurrentToken.type != TokenType::IDENTIFIER) {
             LogError(lexer->location, "Expected identifier after 'struct'!");
@@ -450,7 +459,7 @@ namespace t {
                 return nullptr;
             }
             auto MemberName = get<string>(CurrentToken.value);
-            Members[MemberName] = move(Type);
+            Members.push_back({MemberName, move(Type)});
             getNextToken();
         }
         getNextToken(); // eat 'end'

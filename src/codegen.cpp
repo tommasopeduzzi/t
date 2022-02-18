@@ -47,6 +47,22 @@ namespace t {
                 ObjectAddressAndType.second};
     }
 
+    pair<Value *, llvm::Type *> Member::getAddressAndType() {
+        auto object = Object->getAddressAndType();
+        auto Structure = Symbols.GetStructure(Object->type->type);
+        for(int i = 0; i < Structure.members.size(); i++) {
+            auto Member = Structure.members[i];
+            if(Member.first == Name) {
+                auto MemberType = Member.second->GetLLVMType();
+                auto MemberPointer = Builder->CreateGEP(object.first,
+                                                        {ConstantInt::get(llvm::Type::getInt32Ty(*Context), 0), // 'pierce' through pointer
+                                                         ConstantInt::get(llvm::Type::getInt32Ty(*Context), i)});
+                return {MemberPointer, MemberType};
+            }
+        }
+        assert(false && "Unreachable, Member not found");
+    }
+
     Value *Negative::codegen() {
         auto *Value = expression->codegen();
         if (!Value) {
@@ -83,17 +99,14 @@ namespace t {
     Value *VariableDefinition::codegen() {
         auto Function = Builder->GetInsertBlock()->getParent();
 
-        llvm::Value *initialValue;
-        if (Value) {
-            initialValue = Value->codegen();
-            if (!initialValue)
-                return nullptr;
-        } else {
-            // TODO: Change this to have a different value based on type.
-            initialValue = ConstantFP::get(*Context, APFloat(0.0));
-        }
         auto Alloca = CreateAlloca(Function, type->GetLLVMType(), Name, type->size);
         Symbols.CreateVariable(Name, type, Alloca);
+        if(!Value)
+            return Builder->CreateStore(Constant::getNullValue(type->GetLLVMType()), Alloca);
+        llvm::Value *initialValue;
+        initialValue = Value->codegen();
+        if (!initialValue)
+            return nullptr;
         return Builder->CreateStore(initialValue, Alloca);
     }
 
@@ -371,5 +384,12 @@ namespace t {
         }
         auto *StructType = llvm::StructType::create(Types, Name);
         Symbols.CreateStructure(Name, Members, StructType);
+    }
+
+    Value *Member::codegen() {
+        auto AddressAndType = getAddressAndType();
+        auto Address = AddressAndType.first;
+        auto Type = AddressAndType.second;
+        return Builder->CreateLoad(Type, Address);
     }
 }

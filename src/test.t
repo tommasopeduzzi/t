@@ -1,9 +1,13 @@
 import "../../std/io.t"
 # import "../../std/math.t"
-printString("Hello World!")
+# printString("Hello World!")
 struct testtype
-    number[4] test1
-    number[4] penis
+    number test1
+    string test2
 end
-var testtype[4] test
+var testtype test
+test.test1 = 1
+test.test2 = "Hello World!"
+printString(test.test2)
+printNumber(test.test1)
 return 0

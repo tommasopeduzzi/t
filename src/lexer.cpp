@@ -147,7 +147,9 @@ namespace t {
                 NumberString += LastChar;
                 LastChar = getChar();
             } while (isDigit(LastChar) || LastChar == '.');
-
+            if (NumberString == "."){
+                return {TokenType::UNDEFINED, "."};
+            }
             double Value = strtod(NumberString.c_str(), 0);
             return {TokenType::NUMBER, Value};
         }
