@@ -18,14 +18,20 @@ You can find the docs in the [Docs.md](docs/index.md) file.
   - [x] If-Else-Statements
   - [x] For-Loops
   - [x] While-Loops
-- [x] Importing of other files
-- [x] Types
+- Types
   - [x] Numbers
   - [x] Strings
   - [x] Booleans
   - [x] Lists
-- [ ] Standard Library
+  - [ ] Variably sized lists
+  - [ ] Robust Type Checking
+- General Features:
+  - [x] Comments
+  - [x] Importing of other files
   - [ ] ASM Block
+  - [ ] Pointers
+  - [x] Structures
+- Standard Library
   - [ ] Math
   - [ ] String
   - [ ] IO
