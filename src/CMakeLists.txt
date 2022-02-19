@@ -14,14 +14,12 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 set(BUILD_SHARED_LIBS ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-# Add main.cpp file of project root directory as source file
 set(SOURCE_FILES main.cpp error.cpp lexer.cpp parser.cpp codegen.cpp passes.cpp passes.h corefn/corefn.cpp corefn/corefn.h type.cpp symbols.h)
 
-#add_subdirectory(corefn)
 
 # Add executable target with source files listed in SOURCE_FILES variable
 add_executable(t ${SOURCE_FILES})
 llvm_map_components_to_libnames(llvm_libs support core irreader executionengine native codegen orcjit orcshared orctargetprocess)
 target_link_libraries(t  ${llvm_libs})
-#target_link_libraries(t corefn)
