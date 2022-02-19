@@ -39,11 +39,11 @@ vector<unique_ptr<Structure>> Structures;
 set<string> ImportedFiles;
 
 // Command Line Options
+cl::OptionCategory Category("Options");
+cl::opt<string> FileName(cl::Positional, cl::Required, cl::desc("<input file>"), cl::cat(Category));
 
 int main(int argc, char* argv[]) {
-    cl::ResetAllOptionOccurrences();
-    cl::ResetCommandLineParser();
-    cl::opt<string> FileName(cl::Positional, cl::Required, cl::desc("<input file>"));
+    cl::HideUnrelatedOptions(Category);
     cl::ParseCommandLineOptions(argc, argv);
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
