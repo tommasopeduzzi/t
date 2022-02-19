@@ -13,6 +13,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/IRPrintingPasses.h>
+#include <llvm/Support/CommandLine.h>
 #include "corefn/corefn.h"
 #include "passes.h"
 #include "parser.h"
@@ -37,16 +38,18 @@ vector<unique_ptr<Node>> FunctionDeclarations, TopLevelExpressions;
 vector<unique_ptr<Structure>> Structures;
 set<string> ImportedFiles;
 
+// Command Line Options
+
 int main(int argc, char* argv[]) {
-    if(argc < 2){
-        cerr << "Expected File as first argument!\n" << argc;
-        return 0;
-    }
+    cl::ResetAllOptionOccurrences();
+    cl::ResetCommandLineParser();
+    cl::opt<string> FileName(cl::Positional, cl::Required, cl::desc("<input file>"));
+    cl::ParseCommandLineOptions(argc, argv);
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
     InitializeLLVM();
     unique_ptr<Parser> parser = make_unique<Parser>();
-    string absPath = filesystem::absolute(argv[1]); // get absolute path relative to the cwd
+    string absPath = filesystem::absolute(FileName.c_str()); // get absolute path relative to the cwd
     ImportedFiles.insert(absPath);
     parser->ParseFile(absPath, FunctionDeclarations, TopLevelExpressions, Structures, ImportedFiles);
     TypeCheck();
