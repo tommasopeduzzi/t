@@ -21,7 +21,7 @@ namespace t {
             return llvm::Type::getDoubleTy(*Context);
         else if (type == "string")
             return llvm::Type::getInt8PtrTy(*Context);
-        else if (type == "boolean")
+        else if (type == "bool")
             return llvm::Type::getInt1Ty(*Context);
         else if (type == "void")
             return llvm::Type::getVoidTy(*Context);

@@ -24,3 +24,7 @@ extern "C" char *input(){
     getline(cin, str);
     return strdup(str.c_str());
 }
+
+extern "C" char isEqual(const char* str1, const char* str2){
+    return strcmp(str1, str2) == 0;
+}

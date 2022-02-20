@@ -137,6 +137,7 @@ void registerCoreFunctions(std::unique_ptr<orc::LLJIT>& JIT) {
             std::make_pair("printAscii", (void*)printAscii),
             std::make_pair("printNumber", (void*)printNumber),
             std::make_pair("input", (void*)input),
+            std::make_pair("isEqual", (void*)isEqual),
     };
     for(auto & [name, fn] : coreFnMap) {
         auto s = orc::absoluteSymbols({{ Mangle(name), JITEvaluatedSymbol(pointerToJITTargetAddress(fn), JITSymbolFlags::Exported)}});

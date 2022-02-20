@@ -8,3 +8,4 @@ extern "C" void printString(const char* str);
 extern "C" void printAscii(double c);
 extern "C" void printNumber(double number);
 extern "C" char *input();
+extern "C" char isEqual(const char* str1, const char* str2);

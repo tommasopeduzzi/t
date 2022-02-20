@@ -141,6 +141,17 @@ namespace t {
         auto L = LHS->codegen();
         auto R = RHS->codegen();
 
+        if(LHS->type->type == "string" && RHS->type->type == "string"){
+            if(Op == "==")
+                // FIXME: Make this independent from the string.t file
+                if(auto Function = Module->getFunction("isEqual"))
+                    return Builder->CreateCall(Function, {L, R});
+                else{
+                    LogError(location, "Function isEqual not defined! You might have to include the string.t file.");
+                    exit(1);
+                }
+        }
+
         if (!L || !R)
             return nullptr;
         if (Op == "+")
