@@ -12,7 +12,6 @@ using namespace std;
 using namespace llvm;
 
 namespace t {
-
     llvm::Type *Type::GetLLVMType() const {
         if (type.empty()) {
             assert(false);
@@ -25,6 +24,12 @@ namespace t {
             return llvm::Type::getInt1Ty(*Context);
         else if (type == "void")
             return llvm::Type::getVoidTy(*Context);
+        else if (type == "list"){
+            return llvm::StructType::get(*Context, {
+                llvm::Type::getInt32Ty(*Context),
+                llvm::PointerType::get(subtype->GetLLVMType(), 0)
+            });
+        }
         else{
             auto Structure = Symbols.GetStructure(type);
             if (Structure.members.empty() && Structure.type == nullptr) {

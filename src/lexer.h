@@ -67,7 +67,8 @@ namespace t {
                 "number",
                 "bool",
                 "string",
-                "void"
+                "void",
+                "list"
         };
 
         char LastChar = ' ';

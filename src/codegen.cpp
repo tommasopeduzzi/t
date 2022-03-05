@@ -26,7 +26,7 @@ namespace t {
         Builder = make_unique<IRBuilder<>>(*Context);
     }
 
-    AllocaInst *CreateAlloca(llvm::Function *Function, llvm::Type *Type, const string &Name, int Size = 1) {
+    AllocaInst *CreateAlloca(llvm::Function *Function, llvm::Type *Type, const string Name = "", int Size = 1) {
         return Builder->CreateAlloca(Type, ConstantInt::get(llvm::Type::getDoubleTy(*Context), Size), Name);
     }
 
