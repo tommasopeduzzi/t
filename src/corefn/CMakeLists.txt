@@ -1,5 +1,7 @@
-add_library(corefn SHARED corefn.cpp)
-llvm_map_components_to_libnames(llvm_libs support core irreader executionengine native codegen orcjit orcshared orctargetprocess)
-execute_process(COMMAND llvm-config --libs OUTPUT_VARIABLE libraries)
-string(STRIP ${libraries} libraries)
-target_link_libraries(corefn  ${llvm_libs})
+cmake_minimum_required(VERSION 3.13)  # CMake version check
+project(t_corefn)                     # Create project "t_corefn"
+set(CMAKE_CXX_STANDARD 17)            # Enable c++17 standard
+
+set(SOURCES corefn.cpp)
+link_directories(corefn)
+add_library(t_corefn SHARED ${SOURCES})
