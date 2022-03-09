@@ -42,25 +42,64 @@ namespace t {
 
     pair<Value *, llvm::Type *> Indexing::getAddressAndType() {
         auto ObjectAddressAndType = Object->getAddressAndType();
-        return {Builder->CreateGEP(ObjectAddressAndType.second, ObjectAddressAndType.first,
-                                   Builder->CreateFPToUI(Index->codegen(), llvm::Type::getInt16Ty(*Context))),
-                ObjectAddressAndType.second};
+        if (!Object->type->isDynamicallyIndexable()){
+            auto index = Builder->CreateFPToUI(Index->codegen(), llvm::Type::getInt16Ty(*Context));
+            auto Address = Builder->CreateGEP(ObjectAddressAndType.second, ObjectAddressAndType.first, index);
+            return {Address, ObjectAddressAndType.second};
+        }
+
+        auto Function = Builder->GetInsertBlock()->getParent();
+
+        auto SizeAddress = Builder->CreateGEP(ObjectAddressAndType.first, {
+            ConstantInt::get(llvm::Type::getInt32Ty(*Context), 0),
+            ConstantInt::get(llvm::Type::getInt32Ty(*Context), 0), // Pointer to size
+        });
+        auto AllocaAddress = Builder->CreateGEP(ObjectAddressAndType.first, {
+                ConstantInt::get(llvm::Type::getInt32Ty(*Context), 0),
+                ConstantInt::get(llvm::Type::getInt32Ty(*Context), 1), // Pointer to Pointer to Data
+        });
+
+        auto index = Builder->CreateFPToUI(Index->codegen(), llvm::Type::getInt32Ty(*Context));
+        auto Size = Builder->CreateLoad(SizeAddress); // get current size of the list
+        auto newSize = Builder->CreateAdd(index, ConstantInt::get(llvm::Type::getInt32Ty(*Context), 1), "new_size");
+        auto Condition = Builder->CreateICmpUGT(newSize, Size);
+        auto ResizeBlock = BasicBlock::Create(*Context, "resize", Function);
+        auto ContinueBlock = BasicBlock::Create(*Context, "continue", Function);
+        Builder->CreateCondBr(Condition, ResizeBlock, ContinueBlock);
+
+        Builder->SetInsertPoint(ResizeBlock);
+        auto oldAlloca = Builder->CreateLoad(AllocaAddress, "old_alloca");
+        auto newAlloca = Builder->CreateAlloca(Object->type->subtype->GetLLVMType(), newSize, "new_alloca"); // create new allocation to expand to size necessary
+        auto SizeOfSingleElement = Module->getDataLayout().getTypeAllocSize(Object->type->subtype->GetLLVMType());
+        auto SizeInBytes = Builder->CreateMul(Size, ConstantInt::get(llvm::Type::getInt32Ty(*Context), SizeOfSingleElement));
+        auto memcpyInstruction = Builder->CreateMemCpy(newAlloca, MaybeAlign(), oldAlloca, MaybeAlign(), SizeInBytes);
+        Builder->CreateStore(newAlloca, AllocaAddress); // store new address
+        Builder->CreateStore(newSize, SizeAddress);   // update size
+        Builder->CreateBr(ContinueBlock);
+
+        Builder->SetInsertPoint(ContinueBlock);
+        auto Type = Object->type->subtype->GetLLVMType();
+        auto Alloca = Builder->CreateLoad(AllocaAddress);
+        auto Address = Builder->CreateGEP(Alloca, index);
+        return {Address, Type};
     }
 
     pair<Value *, llvm::Type *> Member::getAddressAndType() {
         auto object = Object->getAddressAndType();
         auto Structure = Symbols.GetStructure(Object->type->type);
-        for(int i = 0; i < Structure.members.size(); i++) {
+        for (int i = 0; i < Structure.members.size(); i++) {
             auto Member = Structure.members[i];
-            if(Member.first == Name) {
+            if (Member.first == Name) {
                 auto MemberType = Member.second->GetLLVMType();
-                auto MemberPointer = Builder->CreateGEP(object.first,
-                                                        {ConstantInt::get(llvm::Type::getInt32Ty(*Context), 0), // 'pierce' through pointer
-                                                         ConstantInt::get(llvm::Type::getInt32Ty(*Context), i)});
+                auto MemberPointer = Builder->CreateGEP(object.first,{
+                    ConstantInt::get(llvm::Type::getInt32Ty(*Context),0), // 'pierce' through pointer
+                    ConstantInt::get(llvm::Type::getInt32Ty(*Context), i)
+                });
                 return {MemberPointer, MemberType};
             }
         }
-        assert(false && "Unreachable, Member not found");
+        LogError(location, "Member "+Name + " not found in type " + Object->type->type);
+
     }
 
     Value *Negative::codegen() {
@@ -101,7 +140,7 @@ namespace t {
 
         auto Alloca = CreateAlloca(Function, type->GetLLVMType(), Name, type->size);
         Symbols.CreateVariable(Name, type, Alloca);
-        if(!Value)
+        if (!Value)
             return Builder->CreateStore(Constant::getNullValue(type->GetLLVMType()), Alloca);
         llvm::Value *initialValue;
         initialValue = Value->codegen();
@@ -115,7 +154,8 @@ namespace t {
         if (!function)
             return LogError(location, "Function not defined!");
         if (function->arg_size() != Arguments.size())
-            return LogError(location, "Number of Arguments given does not match the number of arguments of the function.");
+            return LogError(location,
+                            "Number of Arguments given does not match the number of arguments of the function.");
         vector<Value *> ArgumentValues = {};
         for (int i = 0; i < Arguments.size(); i++) {
             auto value = Arguments[i]->codegen();
@@ -141,39 +181,49 @@ namespace t {
         auto L = LHS->codegen();
         auto R = RHS->codegen();
 
-        if(LHS->type->type == "string" && RHS->type->type == "string"){
-            if(Op == "==")
+        if (LHS->type->type == "string" && RHS->type->type == "string") {
+            if (Op == "=="){
                 // FIXME: Make this independent from the string.t file
-                if(auto Function = Module->getFunction("isEqual"))
+                if (auto Function = Module->getFunction("isEqual"))
                     return Builder->CreateCall(Function, {L, R});
-                else{
+                else {
                     LogError(location, "Function isEqual not defined! You might have to include the string.t file.");
                     exit(1);
                 }
+            }
+            else{
+                LogError(location, "Operator not supported for strings!");
+                exit(1);
+            }
+        } else if (LHS->type->type == "number" && RHS->type->type == "number") {
+            if (!L || !R)
+                return nullptr;
+            if (Op == "+")
+                return Builder->CreateFAdd(L, R);
+            else if (Op == "-")
+                return Builder->CreateFSub(L, R);
+            else if (Op == "*")
+                return Builder->CreateFMul(L, R);
+            else if (Op == "/")
+                return Builder->CreateFDiv(L, R);
+            else if (Op == "<")
+                return Builder->CreateFCmpULT(L, R);
+            else if (Op == ">")
+                return Builder->CreateFCmpUGT(L, R);
+            else if (Op == ">=")
+                return Builder->CreateFCmpUGE(L, R);
+            else if (Op == "<=")
+                return Builder->CreateFCmpULE(L, R);
+            else if (Op == "==")
+                return Builder->CreateFCmpOEQ(L, R);
+            else
+                return LogError(location, "Unrecognized Operator.");
+        }
+        else{
+            LogError(location, "Incompatible operator types.");
+            exit(1);
         }
 
-        if (!L || !R)
-            return nullptr;
-        if (Op == "+")
-            return Builder->CreateFAdd(L, R);
-        else if (Op == "-")
-            return Builder->CreateFSub(L, R);
-        else if (Op == "*")
-            return Builder->CreateFMul(L, R);
-        else if (Op == "/")
-            return Builder->CreateFDiv(L, R);
-        else if (Op == "<")
-            return Builder->CreateFCmpULT(L, R);
-        else if (Op == ">")
-            return Builder->CreateFCmpUGT(L, R);
-        else if (Op == ">=")
-            return Builder->CreateFCmpUGE(L, R);
-        else if (Op == "<=")
-            return Builder->CreateFCmpULE(L, R);
-        else if (Op == "==")
-            return Builder->CreateFCmpOEQ(L, R);
-        else
-            return LogError(location, "Unrecognized Operator.");
     }
 
     Value *Return::codegen() {
@@ -345,7 +395,7 @@ namespace t {
         for (auto &Arg: Function->args()) {
             Arg.setName(Arguments[argument].second);
             AllocaInst *Alloca = CreateAlloca(Function, Arguments[argument].first->GetLLVMType(),
-                                                    Arg.getName().str());
+                                              Arg.getName().str());
             Symbols.CreateVariable(Arg.getName().str(), Arguments[argument].first, Alloca);
             Builder->CreateStore(&Arg, Alloca);
             argument += 1;
