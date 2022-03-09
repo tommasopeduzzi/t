@@ -67,12 +67,15 @@ namespace t {
     }
 
     void Bool::checkType() {
-        type = make_shared<Type>("boolean", 1);
+        type = make_shared<Type>("bool", 1);
     }
 
     void Negative::checkType() {
-        // TODO: actually check if the type can be negative
         expression->checkType();
+        if(!expression->type->isNegatable()){
+            LogError("Negation of non-negatable type.");
+            exit(1);
+        }
         type = expression->type;
     }
 
@@ -86,13 +89,18 @@ namespace t {
     }
 
     void Indexing::checkType() {
-        Object->checkType();
         Index->checkType();
-        if (Index->type != make_shared<Type>("number")) {
+        if (Index->type->type != "number") {
             LogError(location, "Index must be a number");
             exit(1);
         }
-        type = make_shared<Type>(*(Object->type));
+
+        Object->checkType();
+        if (Object->type->subtype == nullptr)
+            type = make_shared<Type>(*(Object->type));  // in case it's a string or a statically sized array
+        else
+            type = make_shared<Type>(*(Object->type->subtype)); // in case it's a dynamically sized list
+
         type->size = 1;
     }
 
@@ -120,8 +128,15 @@ namespace t {
             LogError(location, "Type mismatch");
             exit(1);
         }
-
-        type = LHS->type; // TODO: fix this mess
+        if(Op == "<"  || Op == ">" || Op == "<=" || Op == ">=" || Op == "=="){
+            type = make_shared<Type>("bool");
+        }
+        else if (Op == "+" || Op == "-" || Op == "*" || Op == "/") {
+            type = LHS->type; //TODO: fix this to be dependant on the type of the operands
+        }
+        else{
+            type = LHS->type;
+        }
     }
 
     void VariableDefinition::checkType() {
@@ -137,7 +152,11 @@ namespace t {
     }
 
     void IfStatement::checkType() {
-        Condition->checkType(); // TODO: check if condition is boolean
+        Condition->checkType();
+        if (Condition->type->type != "bool") {
+            LogError(location, "Condition must be a boolean.");
+            exit(1);
+        }
 
         Symbols.CreateScope();
         for (auto &node: Then) {
@@ -160,7 +179,13 @@ namespace t {
         }
         Symbols.CreateScope();
         Symbols.CreateVariable(VariableName, make_shared<Type>("number"));
-        Condition->checkType(); // TODO: check if condition is boolean
+
+        Condition->checkType();
+        if (Condition->type->type != "bool") {
+            LogError(location, "Condition must be a boolean.");
+            exit(1);
+        }
+
         Step->checkType();
         if (Step->type != make_shared<Type>("number")) {
             LogError(location, "Step-Value for stepper must be a number");

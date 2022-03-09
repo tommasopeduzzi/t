@@ -26,6 +26,12 @@ namespace t {
         Type(const string type, unique_ptr<Type> subtype, int size) : type(type), subtype(move(subtype)), size(size) {}
 
         llvm::Type *GetLLVMType() const;
+
+        //TODO: Unhardcode if type can be indexed
+        bool isDynamicallyIndexable() { return type == "list" || type == "string"; }
+
+        //TODO: Unhardcode if type is negatable
+        bool isNegatable() { return type == "number" || type == "bool"; }
     };
 
 }
