@@ -72,7 +72,7 @@ namespace t {
         auto newAlloca = Builder->CreateAlloca(Object->type->subtype->GetLLVMType(), newSize, "new_alloca"); // create new allocation to expand to size necessary
         auto SizeOfSingleElement = Module->getDataLayout().getTypeAllocSize(Object->type->subtype->GetLLVMType());
         auto SizeInBytes = Builder->CreateMul(Size, ConstantInt::get(llvm::Type::getInt32Ty(*Context), SizeOfSingleElement));
-        auto memcpyInstruction = Builder->CreateMemCpy(newAlloca, MaybeAlign(), oldAlloca, MaybeAlign(), SizeInBytes);
+        auto memmoveInstruction = Builder->CreateMemMove(newAlloca, MaybeAlign(), oldAlloca, MaybeAlign(), SizeInBytes);
         Builder->CreateStore(newAlloca, AllocaAddress); // store new address
         Builder->CreateStore(newSize, SizeAddress);   // update size
         Builder->CreateBr(ContinueBlock);

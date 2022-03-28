@@ -3,5 +3,4 @@ project(t_corefn)                     # Create project "t_corefn"
 set(CMAKE_CXX_STANDARD 17)            # Enable c++17 standard
 
 set(SOURCES corefn.cpp)
-link_directories(corefn)
 add_library(t_corefn SHARED ${SOURCES})

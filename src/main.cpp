@@ -142,25 +142,16 @@ int main(int argc, char *argv[]) {
         if (!JIT)
             exit(1);
 
-        // Register Core Functions
-        // TODO: Link shared functions using a shared library
         auto &jd = JIT->getMainJITDylib();
         auto &dl = JIT->getDataLayout();
 
-        orc::MangleAndInterner Mangle(JIT->getExecutionSession(), dl);
-        std::vector<std::pair<std::string, void *> > coreFnMap{
-                std::make_pair("printString", (void *) printString),
-                std::make_pair("printAscii", (void *) printAscii),
-                std::make_pair("printNumber", (void *) printNumber),
-                std::make_pair("input", (void *) input),
-                std::make_pair("isEqual", (void *) isEqual),
-        };
-        for (auto &[name, fn]: coreFnMap) {
-            auto s = orc::absoluteSymbols(
-                    {{Mangle(name), JITEvaluatedSymbol(pointerToJITTargetAddress(fn), JITSymbolFlags::Exported)}});
-            if (auto Error = jd.define(s)) {
-                errs() << "Error defining symbols: " << toString(std::move(Error)) << "\n";
-            }
+        // TODO: Fix static dynamic library path
+        if(auto DSLGO = orc::DynamicLibrarySearchGenerator::Load("./cmake-build-debug/corefn/libt_corefn.dylib",
+                                                                 dl.getGlobalPrefix()))
+            jd.addGenerator(move(*DSLGO));
+        else{
+            std::cerr << "Failed to load dynamic library with core functions.\n";
+            return 1;
         }
 
         if (auto Err = JIT.get()->addIRModule(
