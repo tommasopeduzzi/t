@@ -47,6 +47,18 @@ namespace t {
             auto Address = Builder->CreateGEP(ObjectAddressAndType.second, ObjectAddressAndType.first, index);
             return {Address, ObjectAddressAndType.second};
         }
+        else if (Object->type->type == "string"){
+            auto index = Builder->CreateFPToUI(Index->codegen(), llvm::Type::getInt32Ty(*Context));
+            auto Alloca = CreateAlloca(Builder->GetInsertBlock()->getParent(), llvm::Type::getInt8Ty(*Context), "", 2);
+            auto StringAddress = Builder->CreateLoad(llvm::Type::getInt8PtrTy(*Context), ObjectAddressAndType.first);
+            auto Address = Builder->CreateGEP(llvm::Type::getInt8Ty(*Context), StringAddress, index);
+            Builder->CreateMemCpyInline(Alloca, MaybeAlign(), Address, MaybeAlign(), ConstantInt::get(llvm::Type::getInt16Ty(*Context), 1), false);
+            auto NullTerminatorAddress = Builder->CreateGEP(Alloca, ConstantInt::get(llvm::Type::getInt32Ty(*Context), 1));
+            Builder->CreateStore(ConstantInt::get(llvm::Type::getInt8Ty(*Context), 0), NullTerminatorAddress);
+            auto AddressOfAlloca = CreateAlloca(Builder->GetInsertBlock()->getParent(), llvm::Type::getInt8PtrTy(*Context));
+            Builder->CreateStore(Alloca, AddressOfAlloca);
+            return {AddressOfAlloca, ObjectAddressAndType.second};
+        }
 
         auto Function = Builder->GetInsertBlock()->getParent();
 

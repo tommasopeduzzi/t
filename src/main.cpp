@@ -38,7 +38,7 @@ set<string> ImportedFiles;
 cl::OptionCategory Category("Options");
 cl::opt<string> FileName(cl::Positional, cl::Required, cl::desc("<input file>"), cl::cat(Category));
 cl::opt<bool> JIT("jit", cl::desc("Choose if program should be JIT-compiled"), cl::cat(Category));
-cl::opt<bool> EmitIR("emit-llvm", cl::desc("Emit LLVM IR for "), cl::cat(Category));
+cl::opt<bool> EmitIR("emit-ir", cl::desc("Emit LLVM IR for Program"), cl::cat(Category));
 
 int main(int argc, char *argv[]) {
     cl::HideUnrelatedOptions(Category);
